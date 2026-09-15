@@ -86,7 +86,8 @@ def testSchemas =  [
     [dir:'build/schemas/sTRANXML',path:'tranxml',name:'sTRANXML'],
     [dir:'src/test/resources/xbean/xmlobject',path:'CR192525.xsd defaults.xsd easypo.xsd easypo.xsdconfig enumtest.xsd enumtest.xsdconfig inttest.xsd listandunion.xsd nameworld.xsd numerals.xsd redefine2.xsd SelectAttribute.xsd SelectChildren.xsd selectChldAttTest.xsd soap-envelope.xsd soapfaults.xsd substgroup.xsd substgroup2.xsd Test.xsd Test36510.xsd Test40907.xsd version3.xsd', name:'sXMLOBJECT'],
     [dir:'src/test/resources/xbean/misc/jira',path:'xmlbeans_33b.xsd xmlbeans_46.xsd xmlbeans_48.xsd xmlbeans_64.xsd xmlbeans_68.xsd xmlbeans_71.xsd xmlbeans_98.xsd xmlbeans_99.xsd xmlbeans_105.xsd xmlbeans_175.xsd xmlbeans_177.xsd xmlbeans_177a.xsd xmlbeans_208.xsd xmlbeans_228.xsd xmlbeans_307_maxallowedenum.xsd xmlbeans_307_morethanallowedenum.xsd', name:'sJIRA' ],
-    [dir:'src/test/resources/xbean',path:'xmltokensource',name:'sTOKENSOURCE']
+    [dir:'src/test/resources/xbean',path:'xmltokensource',name:'sTOKENSOURCE'],
+    [dir:'src/test/resources/xbean',path:'labkey',name:'sLABKEY']
 ] + xsdDirs(file('src/test/resources/xbean/extensions')).withIndex().collect { element, index ->
     // the extensions need to be generated separately, because the *.xsdconfigs have overlapping definitions
     [dir:'src/test/resources/xbean/extensions',path:element,name:"sEXT${index}"]
