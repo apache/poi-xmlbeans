@@ -1442,9 +1442,9 @@ public final class SchemaTypeCodePrinter implements SchemaCodePrinter {
 
         if (countQSet > 1) {
             emit("private static final QNameSet[] PROPERTY_QSET = {");
+            int index = 0;
             for (SchemaProperty prop : properties) {
                 final QName[] qnames = prop.acceptedNames();
-                int index = 0;
                 if (qnames != null && qnames.length > 1) {
                     propMap.get(prop).setSetIndex(index++);
                     emit("QNameSet.forArray( new QName[] { ");
