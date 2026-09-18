@@ -488,7 +488,12 @@ public interface XmlObject extends XmlTokenSource {
      * value "1.0", the decimal "1", and the GYear "1", even though
      * all these objects will compare unequal to each other since they
      * lie in different value spaces.
-     * Note: as of XMLBeans 2.2.1 only implemented for simple type values.
+     * <p>
+     * Complex values are compared by structure: the attributes, regardless of
+     * their order, and the child elements in document order, each compared by
+     * value in turn. For mixed content the text between the children is
+     * compared as well. Comments, processing instructions and whitespace that
+     * is not part of mixed content are ignored.
      */
     boolean valueEquals(XmlObject obj);
 

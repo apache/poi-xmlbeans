@@ -67,11 +67,35 @@ public class XmlComplexContentImpl extends XmlObjectBase {
 
     public void set_nil() { /* BUGBUG: what to do? */ }
 
-    // LEFT
+    /**
+     * Compares two complex values by structure: the attributes, regardless of
+     * their order, and the child elements in document order - each compared by
+     * value, so that a child written in a different lexical form but with the
+     * same value still matches - plus, for mixed content, the text between them.
+     * <p>
+     * Comments and processing instructions are ignored, as is whitespace that is
+     * not part of mixed content.
+     */
     public boolean equal_to(XmlObject complexObject) {
-        return _schemaType.equals(complexObject.schemaType());
+        if (complexObject == this) {
+            return true;
+        }
+        if (complexObject == null) {
+            return false;
+        }
 
-        // BUGBUG: by-value structure comparison undone
+        SchemaType otherType = complexObject.schemaType();
+        if (otherType == null || otherType.isSimpleType()) {
+            return false;
+        }
+
+        boolean mixed = is_mixed(_schemaType) || is_mixed(otherType);
+
+        return XmlValueComparison.complex_values_equal(this, complexObject, mixed);
+    }
+
+    private static boolean is_mixed(SchemaType type) {
+        return type.getContentType() == SchemaType.MIXED_CONTENT;
     }
 
     // LEFT
