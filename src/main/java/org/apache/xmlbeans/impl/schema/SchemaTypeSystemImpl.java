@@ -499,7 +499,7 @@ public class SchemaTypeSystemImpl extends SchemaTypeLoaderBase implements Schema
 
     private void assertContainersHelper(Map<QName, SchemaComponent.Ref> comp, Function<SchemaContainer, List<? extends SchemaComponent>> fun, Function<List<? extends SchemaComponent>, ? extends Map<QName, SchemaComponent.Ref>> fun2) {
         final Map<QName, SchemaComponent.Ref> temp = _containers.values().stream()
-            .map(fun).map(fun2 == null ? SchemaTypeSystemImpl::buildComponentRefMap : fun2)
+            .map(fun).map(scs -> fun2 == null ? SchemaTypeSystemImpl.buildComponentRefMap(scs) : fun2.apply(scs) )
             .map(Map::entrySet).flatMap(Set::stream)
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
         assert comp.equals(temp);
