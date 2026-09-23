@@ -226,4 +226,4 @@ org.javassist:javassist:3.30.2-GA
 Mozilla Public License 2.0
 --------------------------
 
-net.sf.saxon:Saxon-HE:12.10
+net.sf.saxon:Saxon-HE:13.0
