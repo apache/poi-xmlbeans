@@ -27,7 +27,7 @@ jobs:
       uses: actions/setup-java@v5
       with:
         distribution: 'temurin'
-        java-version: '8'
+        java-version: '17'
 
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
@@ -38,7 +38,7 @@ jobs:
           *-SNAPSHOT) ;;
           *) echo "not a SNAPSHOT version, skipping"; exit 0 ;;
         esac
-        ./gradlew publishPOIPublicationToApacheRepository -PjdkVersion=8 --no-daemon
+        ./gradlew publishPOIPublicationToApacheRepository -PjdkVersion=17 --no-daemon
       env:
         ORG_GRADLE_PROJECT_apacheUsername: ${{ secrets.NEXUS_USER }}
         ORG_GRADLE_PROJECT_apachePassword: ${{ secrets.NEXUS_PW }}

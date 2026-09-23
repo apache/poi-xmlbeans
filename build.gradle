@@ -70,7 +70,7 @@ ext {
     antVersion = '1.10.17'
     javaparserVersion = '3.28.2'
     log4jVersion = '2.26.1'
-    saxonVersion = '12.10'
+    saxonVersion = '13.0'
     androidSdkMinimum = '26'
     jdkVersion = (project.properties['jdkVersion'] ?: '8') as int
 }

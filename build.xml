@@ -121,7 +121,7 @@
     <!-- dependencies -->
     <dependency prefix="xml-apis" artifact="xml-apis:xml-apis:1.4.01" usage="java8"/>
     <dependency prefix="log4j-api" artifact="org.apache.logging.log4j:log4j-api:2.26.1" usage="main"/>
-    <dependency prefix="saxon" artifact="net.sf.saxon:Saxon-HE:12.10" usage="main"/>
+    <dependency prefix="saxon" artifact="net.sf.saxon:Saxon-HE:13.0" usage="main"/>
     <dependency prefix="ant" artifact="org.apache.ant:ant:1.10.17" usage="main"/>
     <dependency prefix="javaparser-core" artifact="com.github.javaparser:javaparser-core:3.28.2" usage="main"/>
     <dependency prefix="javaparser-symbol-solver-core" artifact="com.github.javaparser:javaparser-symbol-solver-core:3.28.2" usage="main"/>
