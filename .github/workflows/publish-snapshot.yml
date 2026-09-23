@@ -40,5 +40,5 @@ jobs:
         esac
         ./gradlew publishPOIPublicationToApacheRepository -PjdkVersion=8 --no-daemon
       env:
-        ORG_GRADLE_PROJECT_apacheUsername: ${{ secrets.NEXUS_STAGE_DEPLOYER_USER }}
-        ORG_GRADLE_PROJECT_apachePassword: ${{ secrets.NEXUS_STAGE_DEPLOYER_PW }}
+        ORG_GRADLE_PROJECT_apacheUsername: ${{ secrets.NEXUS_USER }}
+        ORG_GRADLE_PROJECT_apachePassword: ${{ secrets.NEXUS_PW }}
