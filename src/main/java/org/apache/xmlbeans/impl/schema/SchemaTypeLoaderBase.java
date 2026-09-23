@@ -194,10 +194,14 @@ public abstract class SchemaTypeLoaderBase implements SchemaTypeLoader {
 
                 if (redirected) {
                     String newLocation = httpcon.getHeaderField("Location");
-                    if (newLocation == null) {
+                    URL newUrl = (newLocation == null) ? null : new URL(newLocation);
+                    if (newUrl == null || !isHttpUrl(newUrl)) {
+                        // a redirect off http(s) would open a file:, jar: or ftp:
+                        // resource the caller never asked for; stop here like
+                        // HttpURLConnection does for a cross-protocol redirect
                         redirected = false;
                     } else {
-                        url = new URL(newLocation);
+                        url = newUrl;
                         count++;
                         // the redirect body is never read, so hand the socket back
                         // instead of leaving it for the keep-alive cache to reap
@@ -210,6 +214,11 @@ public abstract class SchemaTypeLoaderBase implements SchemaTypeLoader {
         try (InputStream stream = conn.getInputStream()) {
             return parse(stream, type, options);
         }
+    }
+
+    private static boolean isHttpUrl(URL url) {
+        String protocol = url.getProtocol();
+        return "http".equalsIgnoreCase(protocol) || "https".equalsIgnoreCase(protocol);
     }
 
     public XmlObject parse(InputStream jiois, SchemaType type, XmlOptions options) throws XmlException, IOException {

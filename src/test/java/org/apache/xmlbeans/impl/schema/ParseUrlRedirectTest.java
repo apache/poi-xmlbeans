@@ -26,8 +26,12 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.time.Duration;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 
 public class ParseUrlRedirectTest {
 
@@ -66,6 +70,39 @@ public class ParseUrlRedirectTest {
             assertEquals(DOC, parsed.xmlText());
         } finally {
             server.stop(0);
+        }
+    }
+
+    @Test
+    void doesNotFollowRedirectsOffHttp() throws Exception {
+        // a local file the caller never asked for
+        Path local = Files.createTempFile("xmlbeans-redirect", ".xml");
+        Files.write(local, "<local>secret</local>".getBytes(StandardCharsets.UTF_8));
+
+        HttpServer server = HttpServer.create(
+            new InetSocketAddress(InetAddress.getLoopbackAddress(), 0), 0);
+
+        String base = "http://" + server.getAddress().getHostString() + ":";
+
+        // the server redirects to a file: URL and carries the document in the redirect body
+        server.createContext("/0", exchange -> {
+            byte[] body = DOC.getBytes(StandardCharsets.UTF_8);
+            exchange.getResponseHeaders().add("Location", local.toUri().toString());
+            exchange.getResponseHeaders().add("Content-Type", "text/xml");
+            exchange.sendResponseHeaders(HttpURLConnection.HTTP_MOVED_TEMP, body.length);
+            exchange.getResponseBody().write(body);
+            exchange.close();
+        });
+
+        server.start();
+        try {
+            URL url = new URL(base + server.getAddress().getPort() + "/0");
+            XmlObject parsed = assertTimeoutPreemptively(Duration.ofSeconds(30),
+                () -> XmlBeans.getContextTypeLoader().parse(url, null, null));
+            assertEquals(DOC, parsed.xmlText());
+        } finally {
+            server.stop(0);
+            Files.deleteIfExists(local);
         }
     }
 }
