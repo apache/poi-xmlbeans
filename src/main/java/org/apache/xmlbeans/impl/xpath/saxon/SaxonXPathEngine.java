@@ -15,6 +15,7 @@
 
 package org.apache.xmlbeans.impl.xpath.saxon;
 
+import net.sf.saxon.value.AtomicValue;
 import net.sf.saxon.value.DateTimeValue;
 import net.sf.saxon.value.GDateValue;
 import org.apache.xmlbeans.*;
@@ -77,6 +78,9 @@ public class SaxonXPathEngine extends XPathExecutionContext implements XPathEngi
                     value = ((DateTimeValue) obj).getStringValue();
                 } else if (obj instanceof BigDecimal) {
                     value = ((BigDecimal) obj).toPlainString();
+                } else if (obj instanceof AtomicValue) {
+                    // e.g. DurationValue - since Saxon 13, toString() no longer returns the lexical form
+                    value = ((AtomicValue) obj).getStringValue();
                 } else {
                     value = obj.toString();
                 }

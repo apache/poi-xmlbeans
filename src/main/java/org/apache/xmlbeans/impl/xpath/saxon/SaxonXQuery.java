@@ -18,7 +18,7 @@ package org.apache.xmlbeans.impl.xpath.saxon;
 import net.sf.saxon.Configuration;
 import net.sf.saxon.dom.DocumentWrapper;
 import net.sf.saxon.dom.NodeOverNodeInfo;
-import net.sf.saxon.ma.map.HashTrieMap;
+import net.sf.saxon.ma.map.GeneralMapBuilder;
 import net.sf.saxon.om.Item;
 import net.sf.saxon.om.NamespaceUri;
 import net.sf.saxon.om.NodeInfo;
@@ -248,10 +248,7 @@ public class SaxonXQuery implements XQuery {
             return ((SaxonDuration) value).getDurationValue();
         } else if (value instanceof Duration) {
             // this is simpler and safer (but perhaps slower) than extracting all the components
-            //return DurationValue.makeDuration(value.toString()).asAtomic();
-            Duration dv = (Duration) value;
-            return new DurationValue(dv.getSign() >= 0, dv.getYears(), dv.getMonths(), dv.getDays(),
-                dv.getHours(), dv.getMinutes(), dv.getSeconds(), 0); // take correct millis..
+            return DurationValue.makeDuration(StringView.tidy(value.toString())).asAtomic();
         } else if (value instanceof SaxonXMLGregorianCalendar) {
             return ((SaxonXMLGregorianCalendar) value).toCalendarValue();
         } else if (value instanceof XMLGregorianCalendar) {
@@ -261,7 +258,8 @@ public class SaxonXQuery implements XQuery {
                 return DateTimeValue.makeDateTimeValue(StringView.tidy(value.toString()),
                         config.getConversionRules()).asAtomic();
             } else if (gtype.equals(DatatypeConstants.DATE)) {
-                return DateValue.makeDateValue(StringView.tidy(value.toString()), config.getConversionRules()).asAtomic();
+                return DateValue.tryParseDate(value.toString(),
+                        config.getConversionRules().isAllowYearZero()).asAtomic();
             } else if (gtype.equals(DatatypeConstants.TIME)) {
                 return TimeValue.makeTimeValue(StringView.tidy(value.toString())).asAtomic();
             } else if (gtype.equals(DatatypeConstants.GYEAR)) {
@@ -290,13 +288,13 @@ public class SaxonXQuery implements XQuery {
         } else if (value instanceof URI) {
             return new AnyURIValue(value.toString());
         } else if (value instanceof Map) {
-            HashTrieMap htm = new HashTrieMap();
+            GeneralMapBuilder mb = new GeneralMapBuilder(config.getMapSpecVersion());
             for (Map.Entry<?, ?> me : ((Map<?, ?>) value).entrySet()) {
-                htm.initialPut(
+                mb.put(
                     (AtomicValue) objectToItem(me.getKey(), config),
                     objectToItem(me.getValue(), config));
             }
-            return htm;
+            return mb.getCompletedMap();
         } else {
             return new ObjectValue<>(value);
         }

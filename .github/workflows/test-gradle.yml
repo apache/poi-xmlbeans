@@ -28,11 +28,11 @@ jobs:
       uses: actions/setup-java@v5
       with:
         distribution: 'temurin'
-        java-version: '8'
+        java-version: '17'
         cache: 'gradle'
 
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
 
     - name: Build with Gradle
-      run: ./gradlew test -PjdkVersion=8 --no-daemon
+      run: ./gradlew test -PjdkVersion=17 --no-daemon
