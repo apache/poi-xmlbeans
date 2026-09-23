@@ -2410,11 +2410,32 @@ public abstract class XmlObjectBase implements TypeStoreUser, Serializable, XmlO
             return false;
         }
 
-        if (xmlobj.schemaType().getSimpleVariety() == SchemaType.UNION) {
-            return (underlying(xmlobj)).equal_to(this);
+        boolean equal = (xmlobj.schemaType().getSimpleVariety() == SchemaType.UNION)
+            ? (underlying(xmlobj)).equal_to(this)
+            : equal_to(xmlobj);
+
+        if (!equal) {
+            return false;
         }
 
-        return equal_to(xmlobj);
+        // A complex type with simple content has just had its text value
+        // compared, by the simple value implementation it inherits; the
+        // attributes the type adds to that value are part of it too.
+        if (typethis.getContentType() == SchemaType.SIMPLE_CONTENT &&
+            typeother.getContentType() == SchemaType.SIMPLE_CONTENT) {
+            return XmlValueComparison.attributes_equal(this, xmlobj);
+        }
+
+        return true;
+    }
+
+    /**
+     * Compares values when the caller already holds the monitor of both
+     * objects, as complex content comparison does while walking two trees:
+     * every object in a tree shares the monitor of its root.
+     */
+    final boolean value_equals_locked(XmlObject xmlobj) {
+        return valueEqualsImpl(xmlobj);
     }
 
     public final boolean valueEquals(XmlObject xmlobj) {
