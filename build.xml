@@ -488,6 +488,7 @@
         <schemaComp schemaName="sVALIDATE" src="${cases.location}/xbean/ValidatingStream" dest="build/test-validate" classpathref="xmlbeans-test"/>
         <schemaComp schemaName="sUSERTYPE" src="${cases.location}/xbean/usertype" dest="build/test-usertype" classpathref="xmlbeans-test"/>
         <schemaComp schemaName="sLAX" src="${cases.location}/xbean/compile/scomp/detailed" dest="build/test-lax" classpathref="xmlbeans-test"/>
+        <schemaComp schemaName="sLABKEY" src="${cases.location}/xbean/labkey" dest="build/test-labkey" classpathref="xmlbeans-test"/>
 
         <pathconvert property="xmlobjects" pathsep=" ">
             <path>
