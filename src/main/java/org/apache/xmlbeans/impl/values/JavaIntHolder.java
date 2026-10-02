@@ -123,6 +123,7 @@ public abstract class JavaIntHolder extends XmlObjectBase {
      * primitives.
      */
     protected int value_hash_code() {
-        return _value;
+        long longval = _value;
+        return (int) ((longval >> 32) * 19 + longval);
     }
 }
