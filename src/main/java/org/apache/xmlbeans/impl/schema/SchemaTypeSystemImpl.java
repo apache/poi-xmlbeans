@@ -595,8 +595,7 @@ public class SchemaTypeSystemImpl extends SchemaTypeLoaderBase implements Schema
                 byte[] bytes = baos.toByteArray();
                 for (int i = 0; i < bytes.length; i++) {
                     int j = i % _mask.length;
-                    _mask[j] *= (byte) 21;
-                    _mask[j] += (byte) i;
+                    _mask[j] = (byte) (_mask[j] * 21 + bytes[i]);
                 }
             } catch (IOException e) {
                 XBeanDebug.LOG.atDebug().withThrowable(e).log(e.getMessage());
@@ -606,7 +605,7 @@ public class SchemaTypeSystemImpl extends SchemaTypeLoaderBase implements Schema
         }
         _random.nextBytes(result);
         for (int i = 0; i < result.length; i++) {
-            int j = i & _mask.length;
+            int j = i % _mask.length;
             result[i] ^= _mask[j];
         }
     }
