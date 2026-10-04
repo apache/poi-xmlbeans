@@ -70,9 +70,9 @@ public class RichParserTests {
 
     @Test
     void testInvalidBase64ThrowsInvalidLexicalValue() throws Exception {
-        // "A" is a single base64 char, the MIME decoder rejects it with
-        // IllegalArgumentException. The rich parser must surface that as the
-        // documented InvalidLexicalValueException, like the other getters.
+        // "A" is a single base64 char and so not valid base64Binary. The rich
+        // parser must surface that as the documented InvalidLexicalValueException,
+        // like the other getters.
         XMLStreamReaderExt elem = atFirstStartElement("<a>A</a>");
         assertThrows(InvalidLexicalValueException.class, elem::getBase64Value);
 
@@ -81,6 +81,14 @@ public class RichParserTests {
 
         XMLStreamReaderExt attByName = atFirstStartElement("<a b=\"A\"/>");
         assertThrows(InvalidLexicalValueException.class, () -> attByName.getAttributeBase64Value("", "b"));
+
+        // non-alphabet chars and missing padding used to be accepted by the MIME decoder
+        for (String bad : new String[]{"SGVsbG8=!!!!", "SGV!!!sbG8=", "SGVsbG8"}) {
+            XMLStreamReaderExt e = atFirstStartElement("<a>" + bad + "</a>");
+            assertThrows(InvalidLexicalValueException.class, e::getBase64Value, bad);
+            XMLStreamReaderExt a = atFirstStartElement("<a b=\"" + bad + "\"/>");
+            assertThrows(InvalidLexicalValueException.class, () -> a.getAttributeBase64Value(0), bad);
+        }
     }
 
     @Test
