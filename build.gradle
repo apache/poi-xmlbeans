@@ -71,7 +71,7 @@ ext {
     javaparserVersion = '3.28.2'
     log4jVersion = '2.26.1'
     saxonVersion = '13.0'
-    androidSdkMinimum = '26'
+    androidSdkMinimum = '34'
     jdkVersion = (project.properties['jdkVersion'] ?: '17') as int
 }
 
@@ -179,7 +179,7 @@ dependencies {
         exclude group: 'com.google.j2objc', module: 'j2objc-annotations'
     }
 
-    signature "com.toasttab.android:gummy-bears-api-${androidSdkMinimum}:0.3.0@signature"
+    signature "com.toasttab.android:gummy-bears-api-${androidSdkMinimum}:0.16.0@signature"
 }
 
 wrapper {
