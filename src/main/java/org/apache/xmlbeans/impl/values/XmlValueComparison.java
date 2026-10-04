@@ -231,8 +231,8 @@ final class XmlValueComparison {
         }
 
         try {
-            if (a instanceof XmlObjectBase && b instanceof XmlObjectBase) {
-                return ((XmlObjectBase) a).value_equals_locked(b);
+            if (a instanceof XmlObjectBase base && b instanceof XmlObjectBase) {
+                return base.value_equals_locked(b);
             }
             return a.valueEquals(b);
         } catch (XmlValueOutOfRangeException e) {

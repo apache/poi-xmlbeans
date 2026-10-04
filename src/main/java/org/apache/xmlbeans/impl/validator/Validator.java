@@ -402,8 +402,7 @@ public final class Validator
                 }
             }
 
-            if (elementField instanceof SchemaLocalElement) {
-                SchemaLocalElement sle = (SchemaLocalElement) elementField;
+            if (elementField instanceof SchemaLocalElement sle) {
                 _localElement = sle;
 
                 if (sle.blockExtension() || sle.blockRestriction()) {
@@ -427,8 +426,7 @@ public final class Validator
             elementType = xsiType;
         }
 
-        if (elementField instanceof SchemaLocalElement) {
-            SchemaLocalElement sle = (SchemaLocalElement) elementField;
+        if (elementField instanceof SchemaLocalElement sle) {
             _localElement = sle;
 
             if (sle.isAbstract()) {
@@ -487,8 +485,8 @@ public final class Validator
         _constraintEngine.element(
             event,
             elementType,
-            elementField instanceof SchemaLocalElement
-                ? ((SchemaLocalElement) elementField).getIdentityConstraints()
+            elementField instanceof SchemaLocalElement sle
+                ? sle.getIdentityConstraints()
                 : null);
     }
 
@@ -712,9 +710,7 @@ public final class Validator
 
         if (!emptyContent && !state._canHaveMixedContent &&
             !event.textIsWhitespace() && !state._hasSimpleContent) {
-            if (field instanceof SchemaLocalElement) {
-                SchemaLocalElement e = (SchemaLocalElement) field;
-
+            if (field instanceof SchemaLocalElement e) {
                 assert state._type.getContentType() == SchemaType.EMPTY_CONTENT ||
                        state._type.getContentType() == SchemaType.ELEMENT_CONTENT;
 
@@ -1596,8 +1592,8 @@ public final class Validator
 
         //try getting it from the stack (this should happen after END)
 
-        if (_stateStack != null && _stateStack._field instanceof SchemaLocalElement) {
-            return (SchemaLocalElement) _stateStack._field;
+        if (_stateStack != null && _stateStack._field instanceof SchemaLocalElement element) {
+            return element;
         }
 
         return null;

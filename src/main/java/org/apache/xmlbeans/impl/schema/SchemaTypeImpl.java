@@ -329,11 +329,11 @@ public final class SchemaTypeImpl implements SchemaType, TypeStoreUserFactory {
 
         SchemaField field = getContainerField();
         if (field != null) {
-            if (field instanceof SchemaGlobalElement) {
-                return ((SchemaGlobalElement) field).getSourceName();
+            if (field instanceof SchemaGlobalElement element) {
+                return element.getSourceName();
             }
-            if (field instanceof SchemaGlobalAttribute) {
-                return ((SchemaGlobalAttribute) field).getSourceName();
+            if (field instanceof SchemaGlobalAttribute attribute) {
+                return attribute.getSourceName();
             }
         }
         return null;
@@ -1867,8 +1867,8 @@ public final class SchemaTypeImpl implements SchemaType, TypeStoreUserFactory {
 
         // In the case of tree copy, need to call a specla setter to avoid
         // set(XmlObject)
-        if (obj instanceof XmlObject) {
-            result.set_newValue((XmlObject) obj);
+        if (obj instanceof XmlObject object) {
+            result.set_newValue(object);
         } else {
             result.setObjectValue(obj);
         }

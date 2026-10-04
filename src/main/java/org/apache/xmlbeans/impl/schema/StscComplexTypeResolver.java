@@ -86,8 +86,7 @@ public class StscComplexTypeResolver {
             if (ds instanceof String && ds.equals("#all")) {
                 // #ALL value
                 finalExt = finalRest = finalList = finalUnion = true;
-            } else if (ds instanceof List) {
-                List<?> dsl = (List<?>) ds;
+            } else if (ds instanceof List<?> dsl) {
                 finalExt = dsl.contains("extension");
                 finalRest = dsl.contains("restriction");
 
@@ -119,8 +118,7 @@ public class StscComplexTypeResolver {
             if (block instanceof String && block.equals("#all")) {
                 // #ALL value
                 blockExt = blockRest = true;
-            } else if (block instanceof List) {
-                List<?> blist = (List<?>) block;
+            } else if (block instanceof List<?> blist) {
                 if (blist.contains("extension")) {
                     blockExt = true;
                 }
@@ -1482,12 +1480,11 @@ public class StscComplexTypeResolver {
         sPropImpl.setMinOccurs(use.getMinOccurs());
         sPropImpl.setMaxOccurs(use.getMaxOccurs());
 
-        if(use instanceof SchemaParticle){
-            sPropImpl.setDocumentation(((SchemaParticle)use).getDocumentation());
+        if(use instanceof SchemaParticle particle){
+            sPropImpl.setDocumentation(particle.getDocumentation());
         }
 
-        if (use instanceof SchemaLocalElementImpl) {
-            SchemaLocalElementImpl elt = (SchemaLocalElementImpl) use;
+        if (use instanceof SchemaLocalElementImpl elt) {
             sPropImpl.setAcceptedNames(elt.acceptedStartNames());
         }
 

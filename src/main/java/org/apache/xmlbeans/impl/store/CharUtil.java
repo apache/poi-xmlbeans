@@ -49,11 +49,9 @@ public final class CharUtil {
             return;
         }
 
-        if (src instanceof char[]) {
-            sb.append((char[]) src, off, cch);
-        } else if (src instanceof String) {
-            String s = (String) src;
-
+        if (src instanceof char[] chars) {
+            sb.append(chars, off, cch);
+        } else if (src instanceof String s) {
             if (off == 0 && cch == s.length()) {
                 sb.append(s);
             } else {
@@ -72,11 +70,10 @@ public final class CharUtil {
             return;
         }
 
-        if (src instanceof char[]) {
-            char[] cs = (char[]) src;
+        if (src instanceof char[] cs) {
             System.arraycopy(cs, off, chars, start, cch);
-        } else if (src instanceof String) {
-            ((String) src).getChars(off, off + cch, chars, start);
+        } else if (src instanceof String string) {
+            string.getChars(off, off + cch, chars, start);
         } else {
             ((CharJoin) src).getChars(chars, start, off, cch);
         }
@@ -89,13 +86,11 @@ public final class CharUtil {
             return "";
         }
 
-        if (src instanceof char[]) {
-            return new String((char[]) src, off, cch);
+        if (src instanceof char[] chars) {
+            return new String(chars, off, cch);
         }
 
-        if (src instanceof String) {
-            String s = (String) src;
-
+        if (src instanceof String s) {
             if (off == 0 && cch == s.length()) {
                 return s;
             }
@@ -129,8 +124,8 @@ public final class CharUtil {
             return true;
         }
 
-        if (src instanceof char[]) {
-            for (char[] chars = (char[]) src; cch > 0; cch--) {
+        if (src instanceof char[] chars) {
+            for (; cch > 0; cch--) {
                 if (!isWhiteSpace(chars[off++])) {
                     return false;
                 }
@@ -139,8 +134,8 @@ public final class CharUtil {
             return true;
         }
 
-        if (src instanceof String) {
-            for (String s = (String) src; cch > 0; cch--) {
+        if (src instanceof String s) {
+            for (; cch > 0; cch--) {
                 if (!isWhiteSpace(s.charAt(off++))) {
                     return false;
                 }
@@ -167,16 +162,12 @@ public final class CharUtil {
         assert isValid(src, off, cch);
 
         if (cch > 0) {
-            if (src instanceof char[]) {
-                char[] chars = (char[]) src;
-
+            if (src instanceof char[] chars) {
                 while (cch > 0 && isWhiteSpace(chars[off])) {
                     cch--;
                     off++;
                 }
-            } else if (src instanceof String) {
-                String s = (String) src;
-
+            } else if (src instanceof String s) {
                 while (cch > 0 && isWhiteSpace(s.charAt(off))) {
                     cch--;
                     off++;
@@ -529,9 +520,7 @@ public final class CharUtil {
 
         if (src == null) {
             p.print("<null-src>");
-        } else if (src instanceof String) {
-            String s = (String) src;
-
+        } else if (src instanceof String s) {
             p.print("String");
 
             if (off != 0 || cch != s.length()) {
@@ -543,9 +532,7 @@ public final class CharUtil {
 
             //p.print( ": " );
             dumpText(p, s.substring(off, off + cch));
-        } else if (src instanceof char[]) {
-            char[] chars = (char[]) src;
-
+        } else if (src instanceof char[] chars) {
             p.print("char[]");
 
             if (off != 0 || cch != chars.length) {
@@ -557,10 +544,10 @@ public final class CharUtil {
 
             //p.print( ": " );
             dumpText(p, new String(chars, off, cch));
-        } else if (src instanceof CharJoin) {
+        } else if (src instanceof CharJoin join) {
             p.print("CharJoin");
 
-            ((CharJoin) src).dumpChars(p, off, cch);
+            join.dumpChars(p, off, cch);
         } else {
             p.print("Unknown text source");
         }
@@ -575,18 +562,16 @@ public final class CharUtil {
             return off == 0 && cch == 0;
         }
 
-        if (src instanceof char[]) {
-            char[] c = (char[]) src;
+        if (src instanceof char[] c) {
             return off <= c.length && off + cch <= c.length;
         }
 
-        if (src instanceof String) {
-            String s = (String) src;
+        if (src instanceof String s) {
             return off <= s.length() && off + cch <= s.length();
         }
 
-        if (src instanceof CharJoin) {
-            return ((CharJoin) src).isValid(off, cch);
+        if (src instanceof CharJoin join) {
+            return join.isValid(off, cch);
         }
 
         return false;
@@ -607,12 +592,12 @@ public final class CharUtil {
 
             int depth = 0;
 
-            if (srcLeft instanceof CharJoin) {
-                depth = ((CharJoin) srcLeft)._depth;
+            if (srcLeft instanceof CharJoin join) {
+                depth = join._depth;
             }
 
-            if (srcRight instanceof CharJoin) {
-                int rightDepth = ((CharJoin) srcRight)._depth;
+            if (srcRight instanceof CharJoin join) {
+                int rightDepth = join._depth;
 
                 if (rightDepth > depth) {
                     depth = rightDepth;
@@ -631,12 +616,12 @@ public final class CharUtil {
         public int depth() {
             int depth = 0;
 
-            if (_srcLeft instanceof CharJoin) {
-                depth = ((CharJoin) _srcLeft).depth();
+            if (_srcLeft instanceof CharJoin join) {
+                depth = join.depth();
             }
 
-            if (_srcRight instanceof CharJoin) {
-                depth = Math.max(((CharJoin) _srcRight).depth(), depth);
+            if (_srcRight instanceof CharJoin join) {
+                depth = Math.max(join.depth(), depth);
             }
 
             return depth + 1;
@@ -812,8 +797,8 @@ public final class CharUtil {
                 _srcLeafChars = null;
                 _srcLeafString = null;
 
-                if (src instanceof char[]) {
-                    _srcLeafChars = (char[]) src;
+                if (src instanceof char[] chars) {
+                    _srcLeafChars = chars;
                 } else {
                     _srcLeafString = (String) src;
                 }

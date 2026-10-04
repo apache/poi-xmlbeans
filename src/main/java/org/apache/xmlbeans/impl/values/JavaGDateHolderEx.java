@@ -240,8 +240,8 @@ public abstract class JavaGDateHolderEx extends XmlObjectBase {
 
         GDate candidate;
 
-        if (v.isImmutable() && (v instanceof GDate) && v.getBuiltinTypeCode() == code) {
-            candidate = (GDate) v;
+        if (v.isImmutable() && (v instanceof GDate date) && v.getBuiltinTypeCode() == code) {
+            candidate = date;
         } else {
             // truncate extra fields from the date if necessary.
             if (v.getBuiltinTypeCode() != code) {

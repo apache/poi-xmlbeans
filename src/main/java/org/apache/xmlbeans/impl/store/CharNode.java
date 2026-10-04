@@ -55,8 +55,8 @@ abstract class CharNode implements DomImpl.Dom, Node, CharacterData {
     public DomImpl.Dom getDom() {
         assert isValid();
 
-        if (_src instanceof DomImpl.Dom)
-            return (DomImpl.Dom) _src;
+        if (_src instanceof DomImpl.Dom dom)
+            return dom;
 
         return null;
     }
@@ -209,8 +209,8 @@ abstract class CharNode implements DomImpl.Dom, Node, CharacterData {
     }
 
     public void dump(PrintStream o, Object ref) {
-        if (_src instanceof DomImpl.Dom)
-            ((DomImpl.Dom) _src).dump(o, ref);
+        if (_src instanceof DomImpl.Dom dom)
+            dom.dump(o, ref);
         else
             o.println("Lonely CharNode: \"" + CharUtil.getString(_src, _off, _cch) + "\"");
     }

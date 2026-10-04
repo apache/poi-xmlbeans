@@ -208,10 +208,10 @@ public class InterfaceExtensionImpl implements InterfaceExtension {
 
     private static String[] paramStrings(NodeList<?> params) {
         return params.stream().map(p -> {
-            if (p instanceof Parameter) {
-                return ((Parameter)p).getType().resolve().describe();
-            } else if (p instanceof TypeParameter) {
-                return ((TypeParameter)p).getNameAsString();
+            if (p instanceof Parameter param) {
+                return param.getType().resolve().describe();
+            } else if (p instanceof TypeParameter typeParam) {
+                return typeParam.getNameAsString();
             } else {
                 return "unknown";
             }

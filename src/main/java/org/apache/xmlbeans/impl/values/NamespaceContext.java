@@ -155,8 +155,8 @@ public class NamespaceContext implements PrefixResolver
                 if (Proxy.isProxyClass(obj.getClass()))
                     obj = Proxy.getInvocationHandler(obj);
 
-                if (obj instanceof TypeStoreUser)
-                    return ((TypeStoreUser)obj).get_store().getNamespaceForPrefix(prefix);
+                if (obj instanceof TypeStoreUser user)
+                    return user.get_store().getNamespaceForPrefix(prefix);
 
                 try (XmlCursor cur = ((XmlObject)_obj).newCursor()) {
                     if (cur != null)

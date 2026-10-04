@@ -55,14 +55,14 @@ public abstract class XmlObjectBase implements TypeStoreUser, Serializable, XmlO
         if (obj == null) {
             return null;
         }
-        if (obj instanceof XmlObjectBase) {
-            return (XmlObjectBase) obj;
+        if (obj instanceof XmlObjectBase base) {
+            return base;
         }
         while (obj instanceof DelegateXmlObject) {
             obj = ((DelegateXmlObject) obj).underlyingXmlObject();
         }
-        if (obj instanceof XmlObjectBase) {
-            return (XmlObjectBase) obj;
+        if (obj instanceof XmlObjectBase base) {
+            return base;
         }
         throw new IllegalStateException("Non-native implementations of XmlObject should extend FilterXmlObject or implement DelegateXmlObject");
     }
@@ -1781,44 +1781,44 @@ public abstract class XmlObjectBase implements TypeStoreUser, Serializable, XmlO
             return;
         }
 
-        if (o instanceof XmlObject) {
-            set((XmlObject) o);
-        } else if (o instanceof String) {
-            setStringValue((String) o);
-        } else if (o instanceof StringEnumAbstractBase) {
-            setEnumValue((StringEnumAbstractBase) o);
-        } else if (o instanceof BigInteger) {
-            setBigIntegerValue((BigInteger) o);
-        } else if (o instanceof BigDecimal) {
-            setBigDecimalValue((BigDecimal) o);
-        } else if (o instanceof Byte) {
-            setByteValue((Byte) o);
-        } else if (o instanceof Short) {
-            setShortValue((Short) o);
-        } else if (o instanceof Integer) {
-            setIntValue((Integer) o);
-        } else if (o instanceof Long) {
-            setLongValue((Long) o);
-        } else if (o instanceof Boolean) {
-            setBooleanValue((Boolean) o);
-        } else if (o instanceof Float) {
-            setFloatValue((Float) o);
-        } else if (o instanceof Double) {
-            setDoubleValue((Double) o);
-        } else if (o instanceof Calendar) {
-            setCalendarValue(((Calendar) o));
-        } else if (o instanceof Date) {
-            setDateValue((Date) o);
-        } else if (o instanceof GDateSpecification) {
-            setGDateValue((GDateSpecification) o);
-        } else if (o instanceof GDurationSpecification) {
-            setGDurationValue((GDurationSpecification) o);
-        } else if (o instanceof QName) {
-            setQNameValue((QName) o);
-        } else if (o instanceof List) {
-            setListValue((List<?>) o);
-        } else if (o instanceof byte[]) {
-            setByteArrayValue((byte[]) o);
+        if (o instanceof XmlObject v) {
+            set(v);
+        } else if (o instanceof String v) {
+            setStringValue(v);
+        } else if (o instanceof StringEnumAbstractBase v) {
+            setEnumValue(v);
+        } else if (o instanceof BigInteger v) {
+            setBigIntegerValue(v);
+        } else if (o instanceof BigDecimal v) {
+            setBigDecimalValue(v);
+        } else if (o instanceof Byte v) {
+            setByteValue(v);
+        } else if (o instanceof Short v) {
+            setShortValue(v);
+        } else if (o instanceof Integer v) {
+            setIntValue(v);
+        } else if (o instanceof Long v) {
+            setLongValue(v);
+        } else if (o instanceof Boolean v) {
+            setBooleanValue(v);
+        } else if (o instanceof Float v) {
+            setFloatValue(v);
+        } else if (o instanceof Double v) {
+            setDoubleValue(v);
+        } else if (o instanceof Calendar v) {
+            setCalendarValue(v);
+        } else if (o instanceof Date v) {
+            setDateValue(v);
+        } else if (o instanceof GDateSpecification v) {
+            setGDateValue(v);
+        } else if (o instanceof GDurationSpecification v) {
+            setGDurationValue(v);
+        } else if (o instanceof QName v) {
+            setQNameValue(v);
+        } else if (o instanceof List<?> v) {
+            setListValue(v);
+        } else if (o instanceof byte[] v) {
+            setByteArrayValue(v);
         } else {
             throw
                 new XmlValueNotSupportedException(
@@ -1834,8 +1834,7 @@ public abstract class XmlObjectBase implements TypeStoreUser, Serializable, XmlO
         }
 
         primitive:
-        if (obj instanceof XmlAnySimpleType) {
-            XmlAnySimpleType v = (XmlAnySimpleType) obj;
+        if (obj instanceof XmlAnySimpleType v) {
             SchemaType instanceType = ((SimpleValue) v).instanceType();
             assert (instanceType != null) : "Nil case should have been handled already";
 

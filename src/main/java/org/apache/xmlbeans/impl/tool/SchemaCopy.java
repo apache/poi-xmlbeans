@@ -166,10 +166,10 @@ public class SchemaCopy {
 
             Map<URI,URI> result = new LinkedHashMap<>();
 
-            if (xobj instanceof SchemaDocument) {
-                putMappingsFromSchema(result, source, target, ((SchemaDocument) xobj).getSchema());
-            } else if (xobj instanceof DefinitionsDocument) {
-                putMappingsFromWsdl(result, source, target, ((DefinitionsDocument) xobj).getDefinitions());
+            if (xobj instanceof SchemaDocument schemaDoc) {
+                putMappingsFromSchema(result, source, target, schemaDoc.getSchema());
+            } else if (xobj instanceof DefinitionsDocument wsdlDoc) {
+                putMappingsFromWsdl(result, source, target, wsdlDoc.getDefinitions());
             }
             return result;
         } catch (Exception e) {

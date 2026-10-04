@@ -445,10 +445,10 @@ public class SchemaCompiler {
 
                         XmlObject urldoc = loader.parse(urlFile, null, options);
 
-                        if ((urldoc instanceof org.apache.xmlbeans.impl.xb.substwsdl.DefinitionsDocument)) {
-                            addWsdlSchemas(urlFile.toString(), (org.apache.xmlbeans.impl.xb.substwsdl.DefinitionsDocument) urldoc, errorListener, noVDoc, scontentlist);
-                        } else if ((urldoc instanceof SchemaDocument)) {
-                            addSchema(urlFile.toString(), (SchemaDocument) urldoc,
+                        if ((urldoc instanceof org.apache.xmlbeans.impl.xb.substwsdl.DefinitionsDocument wsdlDoc)) {
+                            addWsdlSchemas(urlFile.toString(), wsdlDoc, errorListener, noVDoc, scontentlist);
+                        } else if ((urldoc instanceof SchemaDocument schemaDoc)) {
+                            addSchema(urlFile.toString(), schemaDoc,
                                 errorListener, noVDoc, scontentlist);
                         } else {
                             StscState.addError(errorListener, XmlErrorCodes.INVALID_DOCUMENT_TYPE,

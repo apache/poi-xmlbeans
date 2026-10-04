@@ -70,17 +70,17 @@ public class SaxonXPathEngine extends XPathExecutionContext implements XPathEngi
             if (!(node instanceof Node)) {
                 Object obj = resultsList.get(i);
                 String value;
-                if (obj instanceof Date) {
-                    value = xmlDateFormat.format((Date) obj);
-                } else if (obj instanceof GDateValue) {
-                    value = ((GDateValue) obj).getStringValue();
-                } else if (obj instanceof DateTimeValue) {
-                    value = ((DateTimeValue) obj).getStringValue();
-                } else if (obj instanceof BigDecimal) {
-                    value = ((BigDecimal) obj).toPlainString();
-                } else if (obj instanceof AtomicValue) {
+                if (obj instanceof Date date) {
+                    value = xmlDateFormat.format(date);
+                } else if (obj instanceof GDateValue dateValue) {
+                    value = dateValue.getStringValue();
+                } else if (obj instanceof DateTimeValue timeValue) {
+                    value = timeValue.getStringValue();
+                } else if (obj instanceof BigDecimal decimal) {
+                    value = decimal.toPlainString();
+                } else if (obj instanceof AtomicValue atomicValue) {
                     // e.g. DurationValue - since Saxon 13, toString() no longer returns the lexical form
-                    value = ((AtomicValue) obj).getStringValue();
+                    value = atomicValue.getStringValue();
                 } else {
                     value = obj.toString();
                 }

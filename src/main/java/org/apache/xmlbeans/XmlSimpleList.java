@@ -253,8 +253,8 @@ public class XmlSimpleList<T> implements List<T>, java.io.Serializable {
     }
 
     private String stringValue(Object o) {
-        if (o instanceof SimpleValue) {
-            return ((SimpleValue) o).getStringValue();
+        if (o instanceof SimpleValue value) {
+            return value.getStringValue();
         }
         return o.toString();
     }

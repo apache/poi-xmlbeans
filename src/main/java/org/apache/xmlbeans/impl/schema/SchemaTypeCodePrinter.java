@@ -415,8 +415,8 @@ public final class SchemaTypeCodePrinter implements SchemaCodePrinter {
     }
 
     private static SchemaTypeImpl getImpl(SchemaType sType) {
-        if (sType instanceof SchemaTypeImpl) {
-            return (SchemaTypeImpl) sType;
+        if (sType instanceof SchemaTypeImpl impl) {
+            return impl;
         } else {
             return null;
         }

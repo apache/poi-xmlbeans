@@ -75,8 +75,7 @@ public class BindingConfigImpl extends BindingConfig {
                 QName name = qnameconfig.getName();
                 String javaname = qnameconfig.getJavaname();
                 for (XmlAnySimpleType xmlAnySimpleType : applyto) {
-                    if (xmlAnySimpleType instanceof Qnametargetenum) {
-                        Qnametargetenum a = (Qnametargetenum) xmlAnySimpleType;
+                    if (xmlAnySimpleType instanceof Qnametargetenum a) {
                         switch (a.getEnumValue().intValue()) {
                             case Qnametargetenum.INT_TYPE:
                                 _qnameTypeMap.put(name, javaname);
@@ -170,9 +169,9 @@ public class BindingConfigImpl extends BindingConfig {
             result.put("", value);
         } else if (key instanceof String && "##any".equals(key)) {
             result.put(key, value);
-        } else if (key instanceof List) {
+        } else if (key instanceof List<?> list) {
             // map uris to value
-            ((List<?>) key).forEach(o -> result.put("##local".equals(o) ? "" : o, value));
+            list.forEach(o -> result.put("##local".equals(o) ? "" : o, value));
         }
     }
 
@@ -193,9 +192,9 @@ public class BindingConfigImpl extends BindingConfig {
 
         if (key instanceof String && "*".equals(key)) {
             xbeanSet = NameSet.EVERYTHING;
-        } else if (key instanceof List<?>) {
+        } else if (key instanceof List<?> list) {
             NameSetBuilder xbeanSetBuilder = new NameSetBuilder();
-            for (Object o : (List<?>) key) {
+            for (Object o : list) {
                 xbeanSetBuilder.add(o.toString());
             }
             xbeanSet = xbeanSetBuilder.toNameSet();
@@ -257,8 +256,7 @@ public class BindingConfigImpl extends BindingConfig {
         if (!mapByUriPrefix.isEmpty()) {
             String uriprefix = null;
             for (Object o : mapByUriPrefix.keySet()) {
-                if (o instanceof String) {
-                    String nextprefix = (String) o;
+                if (o instanceof String nextprefix) {
                     if (uriprefix != null && nextprefix.length() < uriprefix.length()) {
                         continue;
                     }

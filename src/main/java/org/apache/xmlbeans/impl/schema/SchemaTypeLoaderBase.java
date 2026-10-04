@@ -184,8 +184,7 @@ public abstract class SchemaTypeLoaderBase implements SchemaTypeLoader {
             conn = url.openConnection();
             conn.addRequestProperty("User-Agent", USER_AGENT);
             conn.addRequestProperty("Accept", "application/xml, text/xml, */*");
-            if (conn instanceof HttpURLConnection) {
-                HttpURLConnection httpcon = (HttpURLConnection) conn;
+            if (conn instanceof HttpURLConnection httpcon) {
                 int code = httpcon.getResponseCode();
                 redirected = (code == HttpURLConnection.HTTP_MOVED_PERM || code == HttpURLConnection.HTTP_MOVED_TEMP);
                 if (redirected && count > 5) {

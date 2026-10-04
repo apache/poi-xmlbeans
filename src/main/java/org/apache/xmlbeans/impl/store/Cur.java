@@ -545,7 +545,7 @@ public final class Cur {
         assert _locale == d.locale();
         assert d instanceof Xobj || d instanceof SoapPartDom;
 
-        moveTo(d instanceof Xobj ? (Xobj) d : ((SoapPartDom) d)._docXobj);
+        moveTo(d instanceof Xobj x ? x : ((SoapPartDom) d)._docXobj);
     }
 
     static final class Locations {
@@ -2929,8 +2929,8 @@ public final class Cur {
                 Xobj doc = c1._xobj;
                 c1.release();
                 _locale.exit();
-                if (doc instanceof DocumentXobj) {
-                    ((DocumentXobj) doc).addIdElement(value,
+                if (doc instanceof DocumentXobj xobj) {
+                    xobj.addIdElement(value,
                         x._parent.getDom());
                 }
             }
@@ -3278,8 +3278,7 @@ public final class Cur {
                 o.print("*:");
             }
 
-            if (b._value instanceof XmlLineNumber) {
-                XmlLineNumber l = (XmlLineNumber) b._value;
+            if (b._value instanceof XmlLineNumber l) {
                 o.print("<line:" + l.getLine() + ">" + "[" + b._pos + "]");
             } else {
                 o.print("<mark>" + "[" + b._pos + "]");

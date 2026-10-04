@@ -86,9 +86,7 @@ public class XmlNameImpl implements XMLName {
   public final boolean equals(Object obj) {
     if (obj == this) return true;
 
-    if (obj instanceof XMLName) {
-      final XMLName name= (XMLName) obj;
-
+    if (obj instanceof XMLName name) {
       final String lname = localName;
       if (!(lname==null ? name.getLocalName()==null : 
 	    lname.equals(name.getLocalName())))

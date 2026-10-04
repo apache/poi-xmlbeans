@@ -51,7 +51,7 @@ public class XmlListImpl extends XmlObjectBase implements XmlAnySimpleType {
     }
 
     private static String object2String(Object o) {
-        String s = (o instanceof SimpleValue) ? ((SimpleValue) o).getStringValue() : o.toString();
+        String s = (o instanceof SimpleValue sv) ? sv.getStringValue() : o.toString();
         return (s == null) ? "" : s;
     }
 
@@ -202,7 +202,7 @@ public class XmlListImpl extends XmlObjectBase implements XmlAnySimpleType {
         }
 
         Function<Object, XmlAnySimpleType> fun = (entry) -> {
-            if ((entry instanceof XmlObject) && permits_inner_space((XmlObject) entry)) {
+            if ((entry instanceof XmlObject object) && permits_inner_space(object)) {
                 String stringrep = entry.toString();
                 if (contains_white_space(stringrep)) {
                     throw new XmlValueOutOfRangeException();

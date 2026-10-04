@@ -2041,8 +2041,7 @@ public final class DomImpl {
                 if (((AttrXobj) n).isId()) {
                     Document d = DomImpl.node_getOwnerDocument(n);
                     String val = node_getNodeValue(n);
-                    if (d instanceof DocumentXobj) {
-                        DocumentXobj dox = (DocumentXobj) d;
+                    if (d instanceof DocumentXobj dox) {
                         dox.removeIdElement(val);
                         dox.addIdElement(nodeValue, (Dom) attr_getOwnerElement(n));
                     }
@@ -2160,8 +2159,8 @@ public final class DomImpl {
         if (n instanceof CharNode) {
 //            ret = ((CharNode)n).getDom().equals(arg);
             ret = n.equals(arg);
-        } else if (n instanceof NodeXobj) {
-            ret = ((NodeXobj) n).getDom().equals(arg);
+        } else if (n instanceof NodeXobj xobj) {
+            ret = xobj.getDom().equals(arg);
         } else {
             throw new DomLevel3NotImplemented();
         }
@@ -2714,8 +2713,8 @@ public final class DomImpl {
                 if (((AttrXobj) aa).isId()) {
                     Node d = DomImpl.node_getOwnerDocument(aa);
                     String val = node_getNodeValue(aa);
-                    if (d instanceof DocumentXobj) {
-                        ((DocumentXobj) d).removeIdElement(val);
+                    if (d instanceof DocumentXobj xobj) {
+                        xobj.removeIdElement(val);
                     }
                 }
                 removeNode(aa);
@@ -2761,8 +2760,8 @@ public final class DomImpl {
                 if (((AttrXobj) aa).isId()) {
                     Node d = DomImpl.node_getOwnerDocument(aa);
                     String val = node_getNodeValue(aa);
-                    if (d instanceof DocumentXobj) {
-                        ((DocumentXobj) d).removeIdElement(val);
+                    if (d instanceof DocumentXobj xobj) {
+                        xobj.removeIdElement(val);
                     }
                 }
                 removeNode(aa);

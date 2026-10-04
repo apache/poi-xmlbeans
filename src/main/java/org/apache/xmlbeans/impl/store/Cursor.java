@@ -1293,7 +1293,7 @@ public final class Cursor implements XmlCursor, ChangeListener {
 
         Object bm = c.getBookmark(key);
 
-        return bm instanceof XmlBookmark ? (XmlBookmark) bm : null;
+        return bm instanceof XmlBookmark xb ? xb : null;
     }
 
     public XmlBookmark _getBookmark(Object key) {

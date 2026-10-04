@@ -31,10 +31,10 @@ public class IOUtil {
         throws IOException {
         try {
             //if both are file streams, use channel IO
-            if ((output instanceof FileOutputStream) && (input instanceof FileInputStream)) {
+            if ((output instanceof FileOutputStream fos) && (input instanceof FileInputStream fis)) {
                 try {
-                    FileChannel target = ((FileOutputStream) output).getChannel();
-                    FileChannel source = ((FileInputStream) input).getChannel();
+                    FileChannel target = fos.getChannel();
+                    FileChannel source = fis.getChannel();
 
                     source.transferTo(0, Integer.MAX_VALUE, target);
 
