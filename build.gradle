@@ -63,7 +63,7 @@ repositories {
 configurations {
     bootstrap
     genresources
-    java9
+    jpms
 }
 
 ext {
@@ -127,9 +127,6 @@ dependencies {
     implementation "com.github.javaparser:javaparser-core:${javaparserVersion}"
     implementation "com.github.javaparser:javaparser-symbol-solver-core:${javaparserVersion}"
 
-    // only necessary to compile against JDK8 internals - for Java9+ there's a multimodule implementation
-    implementation 'com.sun.org.apache.xml.internal:resolver:20050927'
-
     // NOTE: newer JUnit breaks some tests for some reason
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.10.3'
     testImplementation 'org.junit.jupiter:junit-jupiter-params:5.10.3'
@@ -161,16 +158,17 @@ dependencies {
     genresources "com.github.javaparser:javaparser-core:${javaparserVersion}"
     genresources "com.github.javaparser:javaparser-symbol-solver-core:${javaparserVersion}"
 
-    // need an own configuration for Java9 builds, as the maven plugin module-config is overlapping lot
-    java9 "org.apache.logging.log4j:log4j-api:${log4jVersion}"
-    java9("net.sf.saxon:Saxon-HE:${saxonVersion}") {
+    // module path for compiling module-info.java - kept separate, as the maven plugin dependencies
+    // would otherwise end up on the module path too
+    jpms "org.apache.logging.log4j:log4j-api:${log4jVersion}"
+    jpms("net.sf.saxon:Saxon-HE:${saxonVersion}") {
         exclude group: 'xml-apis', module: 'xml-apis'
         exclude group: 'org.apache.httpcomponents', module: 'httpclient'
         exclude group: 'org.apache.httpcomponents', module: 'httpcore'
     }
-    java9 "org.apache.ant:ant:${antVersion}"
-    java9 "com.github.javaparser:javaparser-core:${javaparserVersion}"
-    java9("com.github.javaparser:javaparser-symbol-solver-core:${javaparserVersion}") {
+    jpms "org.apache.ant:ant:${antVersion}"
+    jpms "com.github.javaparser:javaparser-core:${javaparserVersion}"
+    jpms("com.github.javaparser:javaparser-symbol-solver-core:${javaparserVersion}") {
         exclude group: 'com.google.guava', module: 'failureaccess'
         exclude group: 'com.google.guava', module: 'listenablefuture'
         exclude group: 'com.google.code.findbugs', module: 'jsr305'
@@ -286,21 +284,20 @@ compileTestJava {
     dependsOn testSchemas.collect {"${it.name}_SchemaGen" }
 }
 
-task compileJava9(type: JavaCompile) {
+// Compiles module-info.java on its own: the already compiled classes are patched into the module
+// and its dependencies are taken from the module path. The module-info.class ends up in the jar root.
+tasks.register('compileModuleInfo', JavaCompile) {
     dependsOn 'compileJava'
-
-    javaCompiler = javaToolchains.compilerFor {
-        languageVersion = JavaLanguageVersion.of(jdkVersion)
-    }
-    sourceCompatibility = 17
-    targetCompatibility = 17
-    destinationDirectory = file('build/classes/java9/main/META-INF/versions/9')
-    source = file('src/main/java9')
+    options.release = 17
+    destinationDirectory = layout.buildDirectory.dir('classes/jpms/main')
+    source = file('src/main/jpms')
     classpath = files()
-    options.compilerArgs = [
-        '--patch-module', "org.apache.xmlbeans=${sourceSets.main.output.asPath}",
-        '--module-path',  files(sourceSets.main.output.files + configurations.java9.asFileTree.files).asPath
-    ]
+    doFirst {
+        options.compilerArgs = [
+            '--patch-module', "org.apache.xmlbeans=${sourceSets.main.output.asPath}",
+            '--module-path', files(sourceSets.main.output.files + configurations.jpms.files).asPath
+        ]
+    }
 }
 
 processTestResources {
@@ -310,7 +307,7 @@ processTestResources {
 task export4anttest(type: Copy) {
     dependsOn 'jar'
     into "build/libs"
-    from configurations.java9
+    from configurations.jpms
 }
 
 test {
@@ -330,7 +327,6 @@ idea {
 }
 
 jar {
-    dependsOn compileJava9
     archiveBaseName = "xmlbeans-${XMLBeansVersion}"
 
     from(project.rootDir) {
@@ -339,7 +335,7 @@ jar {
         into 'META-INF'
     }
 
-    from('build/classes/java9/main')
+    from(tasks.named('compileModuleInfo'))
 
     from('src/main/maven') {
         exclude '**/*.java'
@@ -350,7 +346,6 @@ jar {
     duplicatesStrategy = DuplicatesStrategy.INCLUDE
 
     manifest {
-        attributes('Multi-Release':'true')
         attributes([
                 'Comment': "Apache XmlBeans version ${XMLBeansVersion}",
                 'Specification-Title': 'Apache XmlBeans',
@@ -375,6 +370,7 @@ javadocJar {
 
 sourcesJar {
     archiveBaseName = "xmlbeans-${XMLBeansVersion}"
+    from('src/main/jpms')
     metaInf {
         from("$projectDir/LICENSE.txt")
         from("$projectDir/NOTICE.txt")
@@ -824,6 +820,8 @@ animalsniffer {
     //sourceSets = [sourceSets.main]
     ignore 'javax.xml.stream.*'
     ignore 'javax.xml.namespace.*'
+    // only used by the maven plugin, which never runs on Android
+    ignore 'javax.xml.catalog.*'
 }
 
 // The Android API signature only makes sense for code we ship. ParseUrlRedirectTest

@@ -152,15 +152,12 @@
     <dependency prefix="maven-model" artifact="org.apache.maven:maven-model:3.9.16" usage="maven-plugin"/>
     <dependency prefix="maven-plugin-api" artifact="org.apache.maven:maven-plugin-api:3.9.16" usage="maven-plugin"/>
     <dependency prefix="maven-plugin-annotations" artifact="org.apache.maven.plugin-tools:maven-plugin-annotations:3.15.2" usage="maven-plugin"/>
-    <!-- only necessary to compile against JDK8 internals - for Java9+ there's a mulitmodule implementation -->
-    <dependency prefix="xml-resolver" artifact="com.sun.org.apache.xml.internal:resolver:20050927" usage="maven-plugin"/>
 
     <path id="maven-plugin">
         <pathelement location="${maven-core.jar}"/>
         <pathelement location="${maven-model.jar}"/>
         <pathelement location="${maven-plugin-api.jar}"/>
         <pathelement location="${maven-plugin-annotations.jar}"/>
-        <pathelement location="${xml-resolver.jar}"/>
     </path>
 
     <path id="xmlbeans-test">
@@ -206,6 +203,7 @@
             we often had hard-to-find build/CI-problems because of these! -->
         <delete dir="compile-lib"/>
         <delete dir="lib/main" includes="javaparser-core-3.1*.jar,javaparser-core-3.23.0.jar,slf4j*.jar,Saxon-HE-10.2.jar"/>
+        <delete dir="lib/maven-plugin" includes="resolver-20050927.jar"/>
         <delete dir="lib/tests" includes="slf4j*.jar"/>
         <delete dir="lib/util" includes="forbiddenapis-2.6.jar,forbiddenapis-3.4.jar,apache-rat-0.12.jar"/>
         <condition property="jars.present">
@@ -229,7 +227,6 @@
                     <available file="${maven-model.jar}"/>
                     <available file="${maven-plugin-api.jar}"/>
                     <available file="${maven-plugin-annotations.jar}"/>
-                    <available file="${xml-resolver.jar}"/>
                 </and>
                 <isset property="disconnected"/>
             </or>
@@ -267,7 +264,6 @@
         <downloadfile dest="${maven-model.jar}" src="${maven-model.url}"/>
         <downloadfile dest="${maven-plugin-api.jar}" src="${maven-plugin-api.url}"/>
         <downloadfile dest="${maven-plugin-annotations.jar}" src="${maven-plugin-annotations.url}"/>
-        <downloadfile dest="${xml-resolver.jar}" src="${xml-resolver.url}"/>
     </target>
 
     <macrodef name="schemaComp">
@@ -439,14 +435,14 @@
             <classpath refid="maven-plugin"/>
         </javac>
 
+        <mkdir dir="build/classes-jpms"/>
         <javac release="17"
-               srcdir="${basedir}/src/main/multimodule/java9"
-               destdir="${basedir}/src/main/multimodule/java9"
+               srcdir="${basedir}/src/main/jpms"
+               destdir="build/classes-jpms"
                includeantruntime="false"
                debug="${compile.debug}"
                debuglevel="lines,vars,source"
-               fork="true"
-               unless:true="${isJava8}">
+               fork="true">
             <compilerarg line="--patch-module org.apache.xmlbeans=${basedir}/build/classes"/>
             <modulepath>
                 <pathelement path="lib/main"/>
@@ -660,14 +656,13 @@
             <fileset dir="build/classes" excludes="org/apache/xmlbeans/impl/schema/TypeSystemHolder.template"/>
             <fileset dir="." includes="LICENSE.txt,NOTICE.txt"/>
             <fileset dir="build/generated-resources"/>
-            <zipfileset dir="src/main/multimodule/java9" prefix="META-INF/versions/9" excludes="**/*.java"/>
+            <fileset dir="build/classes-jpms"/>
             <zipfileset dir="build/maven" prefix="META-INF/maven"/>
             <mappedresources>
                 <fileset dir="src/main/resources" excludes="maven/**"/>
                 <cutdirsmapper dirs="1"/>
             </mappedresources>
             <manifest>
-                <attribute name="Multi-Release" value="true"/>
                 <section name="org/apache/xmlbeans/">
                     <attribute name="Comment" value="Apache XmlBeans version ${version.base}"/>
                     <attribute name="Implementation-Title" value="org.apache.xmlbeans"/>
