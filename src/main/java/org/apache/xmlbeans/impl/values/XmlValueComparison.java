@@ -143,6 +143,13 @@ final class XmlValueComparison {
             TokenType tokenA = skip_ignorable(a, mixed);
             TokenType tokenB = skip_ignorable(b, mixed);
 
+            // a value rooted at a document - such as one made by copy() - ends
+            // in ENDDOC where an element ends in END: either way, it has run
+            // out of content
+            if (tokenA.isFinish() || tokenB.isFinish()) {
+                return tokenA.isFinish() && tokenB.isFinish();
+            }
+
             if (tokenA != tokenB) {
                 return false;
             }
