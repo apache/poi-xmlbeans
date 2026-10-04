@@ -22,6 +22,7 @@ import org.apache.xmlbeans.XmlCalendar;
 import org.apache.xmlbeans.impl.common.InvalidLexicalValueException;
 import org.apache.xmlbeans.impl.common.XMLChar;
 import org.apache.xmlbeans.impl.common.XmlWhitespace;
+import org.apache.xmlbeans.impl.util.Base64Bin;
 import org.apache.xmlbeans.impl.util.HexBin;
 import org.apache.xmlbeans.impl.util.XsTypeConverter;
 
@@ -35,7 +36,6 @@ import java.io.InputStream;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
-import java.util.Base64;
 import java.util.Date;
 
 /**
@@ -182,11 +182,11 @@ public class XMLStreamReaderExtImpl
         throws XMLStreamException, InvalidLexicalValueException {
         _charSeq.reload(CharSeqTrimWS.XMLWHITESPACE_TRIM);
         String text = _charSeq.toString();
-        try {
-            byte[] buf = Base64.getMimeDecoder().decode(text.getBytes(StandardCharsets.ISO_8859_1));
+        byte[] buf = Base64Bin.decode(text);
+        if (buf != null) {
             return new ByteArrayInputStream(buf);
-        } catch (IllegalArgumentException e) {
-            throw new InvalidLexicalValueException("invalid base64Binary value", e, _charSeq.getLocation());
+        } else {
+            throw new InvalidLexicalValueException("invalid base64Binary value", _charSeq.getLocation());
         }
     }
 
@@ -332,11 +332,11 @@ public class XMLStreamReaderExtImpl
 
     public InputStream getAttributeBase64Value(int index) throws XMLStreamException {
         String text = _charSeq.reloadAtt(index, CharSeqTrimWS.XMLWHITESPACE_TRIM).toString();
-        try {
-            byte[] buf = Base64.getMimeDecoder().decode(text.getBytes(StandardCharsets.ISO_8859_1));
+        byte[] buf = Base64Bin.decode(text);
+        if (buf != null) {
             return new ByteArrayInputStream(buf);
-        } catch (IllegalArgumentException e) {
-            throw new InvalidLexicalValueException("invalid base64Binary value", e, _charSeq.getLocation());
+        } else {
+            throw new InvalidLexicalValueException("invalid base64Binary value", _charSeq.getLocation());
         }
     }
 
@@ -486,11 +486,11 @@ public class XMLStreamReaderExtImpl
     public InputStream getAttributeBase64Value(String uri, String local) throws XMLStreamException {
         CharSequence cs = _charSeq.reloadAtt(uri, local, CharSeqTrimWS.XMLWHITESPACE_TRIM);
         String text = cs.toString();
-        try {
-            byte[] buf = Base64.getMimeDecoder().decode(text.getBytes(StandardCharsets.ISO_8859_1));
+        byte[] buf = Base64Bin.decode(text);
+        if (buf != null) {
             return new ByteArrayInputStream(buf);
-        } catch (IllegalArgumentException e) {
-            throw new InvalidLexicalValueException("invalid base64Binary value", e, _charSeq.getLocation());
+        } else {
+            throw new InvalidLexicalValueException("invalid base64Binary value", _charSeq.getLocation());
         }
     }
 

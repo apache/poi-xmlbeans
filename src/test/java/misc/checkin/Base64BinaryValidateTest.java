@@ -20,6 +20,7 @@ import org.apache.xmlbeans.SchemaTypeLoader;
 import org.apache.xmlbeans.XmlBeans;
 import org.apache.xmlbeans.XmlObject;
 import org.apache.xmlbeans.impl.xb.xsdschema.SchemaDocument;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -27,13 +28,20 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class Base64BinaryValidateTest {
 
+    private static final String XSD =
+        "<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema' xmlns:t='urn:t' " +
+        "targetNamespace='urn:t' elementFormDefault='qualified'>" +
+        "  <xs:element name='root' type='xs:base64Binary'/>" +
+        "</xs:schema>";
+
+    private static SchemaTypeLoader loader;
+
+    @BeforeAll
+    static void compileSchema() throws Exception {
+        loader = XmlBeans.loadXsd(new XmlObject[]{SchemaDocument.Factory.parse(XSD)});
+    }
+
     private static boolean validates(String value) throws Exception {
-        String xsd =
-            "<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema' xmlns:t='urn:t' " +
-            "targetNamespace='urn:t' elementFormDefault='qualified'>" +
-            "  <xs:element name='root' type='xs:base64Binary'/>" +
-            "</xs:schema>";
-        SchemaTypeLoader loader = XmlBeans.loadXsd(new XmlObject[]{SchemaDocument.Factory.parse(xsd)});
         XmlObject doc = loader.parse("<t:root xmlns:t='urn:t'>" + value + "</t:root>", null, null);
         return doc.validate();
     }
@@ -45,6 +53,15 @@ public class Base64BinaryValidateTest {
         assertFalse(validates("SGVsbG8=!!!!"));
         assertFalse(validates("SGV!!!sbG8="));
         assertFalse(validates("!!!!"));
+    }
+
+    @Test
+    void missingPaddingAndBadLengthAreReported() throws Exception {
+        // the JDK decoders treat padding as optional
+        assertFalse(validates("SGVsbG8"));
+        assertFalse(validates("SGVsbG"));
+        assertFalse(validates("SGVsbG8=="));
+        assertFalse(validates("SG=VsbG8="));
     }
 
     @Test

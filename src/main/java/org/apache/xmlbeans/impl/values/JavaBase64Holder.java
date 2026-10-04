@@ -21,8 +21,8 @@ import org.apache.xmlbeans.XmlErrorCodes;
 import org.apache.xmlbeans.XmlObject;
 import org.apache.xmlbeans.impl.common.QNameHelper;
 import org.apache.xmlbeans.impl.common.ValidationContext;
-import org.apache.xmlbeans.impl.common.XMLChar;
 import org.apache.xmlbeans.impl.schema.BuiltinSchemaTypeSystem;
+import org.apache.xmlbeans.impl.util.Base64Bin;
 
 import java.util.Arrays;
 import java.util.Base64;
@@ -54,29 +54,12 @@ public abstract class JavaBase64Holder extends JavaDigestableHolder {
     }
 
     public static byte[] lex(String v, ValidationContext c) {
-        // The MIME decoder silently discards any character outside the base64
-        // alphabet, so a value carrying stray characters decodes to a truncated
-        // result instead of being rejected. The base64Binary lexical space only
-        // permits the alphabet and XML whitespace, so reject anything else here.
-        for (int i = 0, len = v.length(); i < len; i++) {
-            char ch = v.charAt(i);
-            if (!isBase64Char(ch) && !XMLChar.isSpace(ch)) {
-                c.invalid(XmlErrorCodes.BASE64BINARY, new Object[]{"not encoded properly"});
-                return null;
-            }
-        }
-        try {
-            return Base64.getMimeDecoder().decode(v);
-        } catch (IllegalArgumentException e) {
+        byte[] bytes = Base64Bin.decode(v);
+        if (bytes == null) {
             // TODO - get a decent error with line numbers and such here
             c.invalid(XmlErrorCodes.BASE64BINARY, new Object[]{"not encoded properly"});
-            return null;
         }
-    }
-
-    private static boolean isBase64Char(char ch) {
-        return (ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z') ||
-               (ch >= '0' && ch <= '9') || ch == '+' || ch == '/' || ch == '=';
+        return bytes;
     }
 
     public static byte[] validateLexical(String v, SchemaType sType, ValidationContext context) {
