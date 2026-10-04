@@ -135,10 +135,10 @@ public final class Locale
 
         Locale l;
 
-        if (source instanceof Locale) {
-            l = (Locale) source;
-        } else if (source instanceof XmlTokenSource) {
-            l = (Locale) ((XmlTokenSource) source).monitor();
+        if (source instanceof Locale locale) {
+            l = locale;
+        } else if (source instanceof XmlTokenSource tokenSource) {
+            l = (Locale) tokenSource.monitor();
         } else {
             throw new IllegalArgumentException("Source locale not understood: " + source);
         }

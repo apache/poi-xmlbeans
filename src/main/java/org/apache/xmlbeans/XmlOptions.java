@@ -1609,8 +1609,8 @@ public class XmlOptions implements java.io.Serializable {
      */
     public int getMaxNumberOfCharsForNumbers() {
         Object value = get(XmlOptionsKeys.MAX_NUMBER_CHARS);
-        if (value instanceof Number) {
-            return ((Number) value).intValue();
+        if (value instanceof Number number) {
+            return number.intValue();
         }
         return DEFAULT_MAX_NUMBER_CHARS;
     }

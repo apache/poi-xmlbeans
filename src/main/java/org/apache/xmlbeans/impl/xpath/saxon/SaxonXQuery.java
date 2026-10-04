@@ -188,8 +188,8 @@ public class SaxonXQuery implements XQuery {
                 for (Map.Entry<String, Object> me : variableBindings.entrySet()) {
                     StructuredQName key = new StructuredQName("", emptyUri, me.getKey());
                     Object value = me.getValue();
-                    if (value instanceof XmlTokenSource) {
-                        Node paramObject = ((XmlTokenSource) value).getDomNode();
+                    if (value instanceof XmlTokenSource source) {
+                        Node paramObject = source.getDomNode();
                         dc.setParameter(key, docWrapper.wrap(paramObject));
                     } else {
                         try {
@@ -204,8 +204,8 @@ public class SaxonXQuery implements XQuery {
             List<Object> saxonNodes = xquery.evaluate(dc);
             for (ListIterator<Object> it = saxonNodes.listIterator(); it.hasNext(); ) {
                 Object o = it.next();
-                if (o instanceof NodeInfo) {
-                    Node n = NodeOverNodeInfo.wrap((NodeInfo) o);
+                if (o instanceof NodeInfo info) {
+                    Node n = NodeOverNodeInfo.wrap(info);
                     it.set(n);
                 }
             }
@@ -222,37 +222,36 @@ public class SaxonXQuery implements XQuery {
         }
 
         // convert to switch..
-        if (value instanceof Boolean) {
-            return BooleanValue.get((Boolean) value);
-        } else if (value instanceof byte[]) {
-            return new HexBinaryValue((byte[]) value);
-        } else if (value instanceof Byte) {
-            return new Int64Value((Byte) value, BuiltInAtomicType.BYTE, false);
-        } else if (value instanceof Float) {
-            return new FloatValue((Float) value);
-        } else if (value instanceof Double) {
-            return new DoubleValue((Double) value);
-        } else if (value instanceof Integer) {
-            return new Int64Value((Integer) value, BuiltInAtomicType.INT, false);
-        } else if (value instanceof Long) {
-            return new Int64Value((Long) value, BuiltInAtomicType.LONG, false);
-        } else if (value instanceof Short) {
-            return new Int64Value((Short) value, BuiltInAtomicType.SHORT, false);
-        } else if (value instanceof String) {
-            return new StringValue((String) value);
-        } else if (value instanceof BigDecimal) {
-            return new BigDecimalValue((BigDecimal) value);
-        } else if (value instanceof BigInteger) {
-            return new BigIntegerValue((BigInteger) value);
-        } else if (value instanceof SaxonDuration) {
-            return ((SaxonDuration) value).getDurationValue();
+        if (value instanceof Boolean v) {
+            return BooleanValue.get(v);
+        } else if (value instanceof byte[] v) {
+            return new HexBinaryValue(v);
+        } else if (value instanceof Byte v) {
+            return new Int64Value(v, BuiltInAtomicType.BYTE, false);
+        } else if (value instanceof Float v) {
+            return new FloatValue(v);
+        } else if (value instanceof Double v) {
+            return new DoubleValue(v);
+        } else if (value instanceof Integer v) {
+            return new Int64Value(v, BuiltInAtomicType.INT, false);
+        } else if (value instanceof Long v) {
+            return new Int64Value(v, BuiltInAtomicType.LONG, false);
+        } else if (value instanceof Short v) {
+            return new Int64Value(v, BuiltInAtomicType.SHORT, false);
+        } else if (value instanceof String v) {
+            return new StringValue(v);
+        } else if (value instanceof BigDecimal v) {
+            return new BigDecimalValue(v);
+        } else if (value instanceof BigInteger v) {
+            return new BigIntegerValue(v);
+        } else if (value instanceof SaxonDuration v) {
+            return v.getDurationValue();
         } else if (value instanceof Duration) {
             // this is simpler and safer (but perhaps slower) than extracting all the components
             return DurationValue.makeDuration(StringView.tidy(value.toString())).asAtomic();
-        } else if (value instanceof SaxonXMLGregorianCalendar) {
-            return ((SaxonXMLGregorianCalendar) value).toCalendarValue();
-        } else if (value instanceof XMLGregorianCalendar) {
-            XMLGregorianCalendar g = (XMLGregorianCalendar) value;
+        } else if (value instanceof SaxonXMLGregorianCalendar v) {
+            return v.toCalendarValue();
+        } else if (value instanceof XMLGregorianCalendar g) {
             QName gtype = g.getXMLSchemaType();
             if (gtype.equals(DatatypeConstants.DATETIME)) {
                 return DateTimeValue.makeDateTimeValue(StringView.tidy(value.toString()),
@@ -282,14 +281,13 @@ public class SaxonXQuery implements XQuery {
             } else {
                 throw new AssertionError("Unknown Gregorian date type");
             }
-        } else if (value instanceof QName) {
-            QName q = (QName) value;
+        } else if (value instanceof QName q) {
             return new QNameValue(q.getPrefix(), NamespaceUri.of(q.getNamespaceURI()), q.getLocalPart()); //BuiltInAtomicType.QNAME, null);
         } else if (value instanceof URI) {
             return new AnyURIValue(value.toString());
-        } else if (value instanceof Map) {
+        } else if (value instanceof Map<?, ?> map) {
             GeneralMapBuilder mb = new GeneralMapBuilder(config.getMapSpecVersion());
-            for (Map.Entry<?, ?> me : ((Map<?, ?>) value).entrySet()) {
+            for (Map.Entry<?, ?> me : map.entrySet()) {
                 mb.put(
                     (AtomicValue) objectToItem(me.getKey(), config),
                     objectToItem(me.getValue(), config));

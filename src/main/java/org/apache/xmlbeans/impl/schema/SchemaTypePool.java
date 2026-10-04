@@ -59,23 +59,23 @@ class SchemaTypePool {
         if (comp.getTypeSystem() != typeSystem) {
             throw new IllegalArgumentException("Cannot supply handles for types from another type system");
         }
-        if (comp instanceof SchemaType) {
-            return handleForType((SchemaType) comp);
+        if (comp instanceof SchemaType type) {
+            return handleForType(type);
         }
-        if (comp instanceof SchemaGlobalElement) {
-            return handleForElement((SchemaGlobalElement) comp);
+        if (comp instanceof SchemaGlobalElement element) {
+            return handleForElement(element);
         }
-        if (comp instanceof SchemaGlobalAttribute) {
-            return handleForAttribute((SchemaGlobalAttribute) comp);
+        if (comp instanceof SchemaGlobalAttribute attribute) {
+            return handleForAttribute(attribute);
         }
-        if (comp instanceof SchemaModelGroup) {
-            return handleForModelGroup((SchemaModelGroup) comp);
+        if (comp instanceof SchemaModelGroup group) {
+            return handleForModelGroup(group);
         }
-        if (comp instanceof SchemaAttributeGroup) {
-            return handleForAttributeGroup((SchemaAttributeGroup) comp);
+        if (comp instanceof SchemaAttributeGroup group) {
+            return handleForAttributeGroup(group);
         }
-        if (comp instanceof SchemaIdentityConstraint) {
-            return handleForIdentityConstraint((SchemaIdentityConstraint) comp);
+        if (comp instanceof SchemaIdentityConstraint constraint) {
+            return handleForIdentityConstraint(constraint);
         }
         throw new IllegalStateException("Component type cannot have a handle");
     }

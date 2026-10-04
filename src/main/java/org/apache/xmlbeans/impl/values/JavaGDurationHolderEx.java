@@ -52,8 +52,8 @@ public abstract class JavaGDurationHolderEx extends XmlObjectBase {
             validateValue(v, _schemaType, _voorVc);
         }
 
-        if (v.isImmutable() && (v instanceof GDuration)) {
-            _value = (GDuration) v;
+        if (v.isImmutable() && (v instanceof GDuration duration)) {
+            _value = duration;
         } else {
             _value = new GDuration(v);
         }

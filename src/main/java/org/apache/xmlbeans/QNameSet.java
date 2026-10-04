@@ -166,8 +166,8 @@ public final class QNameSet implements QNameSetSpecification, java.io.Serializab
      * @return the copied QNameSet
      */
     public static QNameSet forSpecification(QNameSetSpecification spec) {
-        if (spec instanceof QNameSet) {
-            return (QNameSet) spec;
+        if (spec instanceof QNameSet set) {
+            return set;
         }
         return QNameSet.forSets(spec.excludedURIs(), spec.includedURIs(), spec.excludedQNamesInIncludedURIs(), spec.includedQNamesInExcludedURIs());
     }

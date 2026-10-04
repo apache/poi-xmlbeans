@@ -158,10 +158,10 @@ public class SchemaTypeSystemCompiler {
 
         if (input != null) {
             for (int i = 0; i < input.length; i++) {
-                if (input[i] instanceof Schema) {
-                    schemas.add((Schema) input[i]);
-                } else if (input[i] instanceof SchemaDocument && ((SchemaDocument) input[i]).getSchema() != null) {
-                    schemas.add(((SchemaDocument) input[i]).getSchema());
+                if (input[i] instanceof Schema schema) {
+                    schemas.add(schema);
+                } else if (input[i] instanceof SchemaDocument document && document.getSchema() != null) {
+                    schemas.add(document.getSchema());
                 } else {
                     throw new XmlException("Thread " + Thread.currentThread().getName() + ": The " + i + "th supplied input is not a schema document: its type is " + input[i].schemaType());
                 }
@@ -364,7 +364,7 @@ public class SchemaTypeSystemCompiler {
      */
     public static boolean generateTypes(SchemaTypeSystem system, Filer filer, XmlOptions options) {
         // partial type systems not allowed to be saved
-        if (system instanceof SchemaTypeSystemImpl && ((SchemaTypeSystemImpl) system).isIncomplete()) {
+        if (system instanceof SchemaTypeSystemImpl impl && impl.isIncomplete()) {
             return false;
         }
 
@@ -384,7 +384,7 @@ public class SchemaTypeSystemCompiler {
         String indexClassName = SchemaTypeCodePrinter.indexClassForSystem(system);
 
         try (Writer out = filer.createSourceFile(indexClassName, options == null ? null : options.getCharacterEncoding())) {
-            Repackager repackager = (filer instanceof FilerImpl) ? ((FilerImpl) filer).getRepackager() : null;
+            Repackager repackager = (filer instanceof FilerImpl fi) ? fi.getRepackager() : null;
             printer.printHolder(out, system, options, repackager);
         } catch (IOException e) {
             System.err.println("IO Error " + e);

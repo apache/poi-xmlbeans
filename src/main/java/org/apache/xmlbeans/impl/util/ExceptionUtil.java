@@ -51,11 +51,11 @@ public class ExceptionUtil {
      * @param throwable to check
      */
     public static void rethrow(Throwable throwable) {
-        if (throwable instanceof Error) {
-            throw (Error) throwable;
+        if (throwable instanceof Error error) {
+            throw error;
         }
-        if (throwable instanceof RuntimeException) {
-            throw (RuntimeException) throwable;
+        if (throwable instanceof RuntimeException exception) {
+            throw exception;
         }
         throw new RuntimeException(throwable);
     }

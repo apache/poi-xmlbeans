@@ -17,8 +17,8 @@
      xmlns:mvn="antlib:org.apache.maven.artifact.ant"
      xmlns:if="ant:if" xmlns:unless="ant:unless">
 
-    <property name="jdk.version.source" value="1.8" description="JDK version of source code"/>
-    <property name="jdk.version.class" value="1.8" description="JDK version of generated class files"/>
+    <property name="jdk.version.source" value="17" description="JDK version of source code"/>
+    <property name="jdk.version.class" value="17" description="JDK version of generated class files"/>
     <property name="compile.debug" value="true"/>
 
     <property name="version.base" value="5.5.0-SNAPSHOT"/>
@@ -313,7 +313,7 @@
                 </filterchain>
             </copy>
 
-            <javac release="8"
+            <javac release="17"
                    destdir="@{rscDir}"
                    debug="${compile.debug}"
                    debuglevel="lines,vars,source"
@@ -378,7 +378,7 @@
 
         <mkdir dir="build/classes"/>
         <mkdir dir="build/generated-sources"/>
-        <javac release="8"
+        <javac release="17"
                destdir="build/classes"
                debug="${compile.debug}"
                debuglevel="lines,vars,source"
@@ -423,7 +423,7 @@
         <!-- delete old schema classes -->
         <delete dir="build/classes/org/apache/xmlbeans/impl/xb"/>
 
-        <javac release="8"
+        <javac release="17"
                destdir="build/classes"
                debug="${compile.debug}"
                debuglevel="lines,vars,source"
@@ -439,7 +439,7 @@
             <classpath refid="maven-plugin"/>
         </javac>
 
-        <javac release="9"
+        <javac release="17"
                srcdir="${basedir}/src/main/multimodule/java9"
                destdir="${basedir}/src/main/multimodule/java9"
                includeantruntime="false"
@@ -549,7 +549,7 @@
 
 
     <target name="test-compile" depends="process-test-resources" description="Compile test sources and resources">
-        <javac release="8"
+        <javac release="17"
                destdir="build/test-classes"
                debug="${compile.debug}"
                debuglevel="lines,vars,source"
@@ -569,7 +569,7 @@
         </javac>
 
         <mkdir dir="build/test-syscache/1/classes"/>
-        <javac release="8"
+        <javac release="17"
                destdir="build/test-syscache/1/classes"
                debug="${compile.debug}"
                debuglevel="lines,vars,source"
@@ -581,7 +581,7 @@
             <classpath location="build/test-syscache/1/generated-resources"/>
         </javac>
         <mkdir dir="build/test-syscache/2/classes"/>
-        <javac release="8"
+        <javac release="17"
                destdir="build/test-syscache/2/classes"
                debug="${compile.debug}"
                debuglevel="lines,vars,source"
@@ -630,11 +630,11 @@
         <delete dir="${javadocs.dir}"/>
         <mkdir dir="${javadocs.dir}"/>
 
-        <!-- force Java 8 source compatibility - see https://stackoverflow.com/questions/56409697 -->
+        <!-- force Java 17 source compatibility - see https://stackoverflow.com/questions/56409697 -->
         <javadoc sourcepathref="sources"
                  destdir="${javadocs.dir}"
                  windowtitle="XMLBeans ${version.base} Documentation"
-                 source="8">
+                 source="17">
             <classpath>
                 <pathelement location="build/classes"/>
                 <fileset dir="lib/main" includes="*.jar"/>

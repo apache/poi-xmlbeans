@@ -115,8 +115,8 @@ public class SaxonXPath implements Path {
             List<Item> saxonNodes = xpath.evaluate(dc);
             List<Object> retNodes = new ArrayList<>(saxonNodes.size());
             for (Item o : saxonNodes) {
-                if (o instanceof DOMNodeWrapper) {
-                    Node n = getUnderlyingNode((DOMNodeWrapper) o);
+                if (o instanceof DOMNodeWrapper wrapper) {
+                    Node n = getUnderlyingNode(wrapper);
                     retNodes.add(n);
                 } else if (o instanceof NodeInfo) {
                     retNodes.add(o.getStringValue());

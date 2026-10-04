@@ -287,8 +287,7 @@ public class IdentityConstraint {
         void remove(Event e) {
             // Bubble up key, unique values to keyrefs
             for (ConstraintState cs = _next; cs != null; cs = cs._next) {
-                if (cs instanceof KeyrefState) {
-                    KeyrefState kr = (KeyrefState) cs;
+                if (cs instanceof KeyrefState kr) {
                     if (kr._constraint.getReferencedKey() == this._constraint) {
                         kr.addKeyValues(_values, true);
                     }
@@ -345,8 +344,7 @@ public class IdentityConstraint {
             // First check if there are any keys at the same stack level as this
             // that may contribute key values to me
             for (ConstraintState cs = _next; cs != null && cs != _elementStack._savePoint; cs = cs._next) {
-                if (cs instanceof SelectorState) {
-                    SelectorState sel = (SelectorState) cs;
+                if (cs instanceof SelectorState sel) {
                     if (sel._constraint == _constraint.getReferencedKey()) {
                         addKeyValues(sel._values, false);
                     }

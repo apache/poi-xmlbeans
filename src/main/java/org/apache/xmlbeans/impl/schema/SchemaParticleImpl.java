@@ -299,8 +299,7 @@ public class SchemaParticleImpl implements SchemaParticle {
 
     private static String parseDocumentation(XmlObject parseObject){
         try {
-            if (parseObject instanceof Element) {
-                Element e = (Element) parseObject;
+            if (parseObject instanceof Element e) {
                 if (e.getAnnotation() != null) {
                     Annotation a = e.getAnnotation();
                     if (a.getDocumentationArray() != null) {

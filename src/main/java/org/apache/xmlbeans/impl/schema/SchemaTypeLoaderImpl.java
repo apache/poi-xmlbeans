@@ -97,8 +97,8 @@ public class SchemaTypeLoaderImpl extends SchemaTypeLoaderBase {
         }
 
         public void addToTypeLoaderCache(SchemaTypeLoader stl, ClassLoader cl) {
-            assert (stl instanceof SchemaTypeLoaderImpl) &&
-                   ((SchemaTypeLoaderImpl) stl)._classLoader == cl;
+            assert (stl instanceof SchemaTypeLoaderImpl stli) &&
+                   stli._classLoader == cl;
 
             List<SoftReference<SchemaTypeLoaderImpl>> a = _cachedTypeSystems.get();
             // Make sure this entry is at the top of the stack
@@ -180,8 +180,7 @@ public class SchemaTypeLoaderImpl extends SchemaTypeLoaderBase {
                 return;
             }
             for (SchemaTypeLoader stl : searchPath) {
-                if (stl instanceof SchemaTypeLoaderImpl) {
-                    SchemaTypeLoaderImpl sub = (SchemaTypeLoaderImpl) stl;
+                if (stl instanceof SchemaTypeLoaderImpl sub) {
                     if (sub._classLoader != null || sub._resourceLoader != null) {
                         add(sub);
                     } else {

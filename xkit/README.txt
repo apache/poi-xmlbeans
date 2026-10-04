@@ -22,7 +22,7 @@ Welcome to XMLBeans!
 Kit contents:
 
 (1) One copy of xmlbeans-5.2.2.jar, which contains XMLBeans.
-    Should work on any JDK 1.8.x or newer.
+    Should work on any JDK 17 or newer.
     ./lib/xmlbeans-5.2.2.jar
 
 (2) License information for XML Beans and included libraries
@@ -44,7 +44,7 @@ Where to start?
 
 (1) Setup.
 
-    1. Make sure you have a JDK 1.8.x or later installed; that
+    1. Make sure you have a JDK 17 or later installed; that
        java[.exe] is on your path and that JAVA_HOME/bin contains
        java[.exe], javac[.exe], and jar[.exe].
 

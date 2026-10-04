@@ -2699,9 +2699,9 @@ abstract class Saver {
             Object src = c.getChars();
 
             try {
-                if (src instanceof char[]) {
+                if (src instanceof char[] chars) {
                     // Pray the user does not modify the buffer ....
-                    _contentHandler.characters((char[]) src, c._offSrc, c._cchSrc);
+                    _contentHandler.characters(chars, c._offSrc, c._cchSrc);
                 } else {
                     if (_buf == null) {
                         _buf = new char[1024];
@@ -2735,9 +2735,9 @@ abstract class Saver {
                     } else {
                         Object src = c.getChars();
 
-                        if (src instanceof char[]) {
+                        if (src instanceof char[] chars) {
                             // Pray the user does not modify the buffer ....
-                            _lexicalHandler.comment((char[]) src, c._offSrc, c._cchSrc);
+                            _lexicalHandler.comment(chars, c._offSrc, c._cchSrc);
                         } else {
                             if (_buf == null || _buf.length < c._cchSrc) {
                                 _buf = new char[java.lang.Math.max(1024, c._cchSrc)];

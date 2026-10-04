@@ -909,8 +909,7 @@ public class StscTranslator {
                 if (ds instanceof String && ds.equals("#all")) {
                     // #ALL value
                     finalExt = finalRest = true;
-                } else if (ds instanceof List) {
-                    List<?> dsList = (List<?>) ds;
+                } else if (ds instanceof List<?> dsList) {
                     if (dsList.contains("extension")) {
                         finalExt = true;
                     }
@@ -952,8 +951,8 @@ public class StscTranslator {
             Object[] grps = state.getCurrentProcessing();
             QName[] context = new QName[grps.length];
             for (int i = 0; i < context.length; i++) {
-                if (grps[i] instanceof SchemaModelGroupImpl) {
-                    context[i] = ((SchemaModelGroupImpl) grps[i]).getName();
+                if (grps[i] instanceof SchemaModelGroupImpl groupImpl) {
+                    context[i] = groupImpl.getName();
                 }
             }
             SchemaType repeat = checkRecursiveGroupReference(context, qname, (SchemaTypeImpl) outerType);
@@ -1028,8 +1027,7 @@ public class StscTranslator {
             if (block instanceof String && block.equals("#all")) {
                 // #ALL value
                 blockExt = blockRest = blockSubst = true;
-            } else if (block instanceof List) {
-                List<?> blockList = (List<?>) block;
+            } else if (block instanceof List<?> blockList) {
                 if (blockList.contains("extension")) {
                     blockExt = true;
                 }
@@ -1562,8 +1560,8 @@ public class StscTranslator {
         try (XmlCursor c = pos.newCursor()) {
             b = c.getBookmark(SchemaBookmark.class);
         }
-        if (b instanceof SchemaBookmark) {
-            return ((SchemaBookmark) b).getValue();
+        if (b instanceof SchemaBookmark bookmark) {
+            return bookmark.getValue();
         } else {
             return null;
         }

@@ -55,9 +55,9 @@ public class Sax2Dom
     public Sax2Dom(Node root) throws ParserConfigurationException
     {
         _root = root;
-        if (root instanceof Document)
+        if (root instanceof Document document)
         {
-            _document = (Document) root;
+            _document = document;
         }
         else if (root != null)
         {

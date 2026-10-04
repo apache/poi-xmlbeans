@@ -1475,8 +1475,7 @@ class XsbReader {
                 flags |= FLAG_PART_ABSTRACT;
             }
 
-            if (lpart instanceof SchemaGlobalElement) {
-                SchemaGlobalElement gpart = (SchemaGlobalElement) lpart;
+            if (lpart instanceof SchemaGlobalElement gpart) {
                 if (gpart.finalExtension()) {
                     flags |= FLAG_PART_FINALEXT;
                 }
@@ -1504,9 +1503,7 @@ class XsbReader {
                 writeXmlValueObject(lpart.getDefaultValue());
                 writeSOAPArrayType(((SchemaWSDLArrayType) lpart).getWSDLArrayType());
                 writeAnnotation(lpart.getAnnotation());
-                if (lpart instanceof SchemaGlobalElement) {
-                    SchemaGlobalElement gpart = (SchemaGlobalElement) lpart;
-
+                if (lpart instanceof SchemaGlobalElement gpart) {
                     writeHandle(gpart.substitutionGroup());
 
                     QName[] substGroupMembers = gpart.substitutionGroupMembers();
