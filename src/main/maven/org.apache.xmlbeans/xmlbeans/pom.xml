@@ -118,12 +118,6 @@
             <version>3.28.2</version>
             <scope>provided</scope>
         </dependency>
-        <dependency>
-            <groupId>com.sun.org.apache.xml.internal</groupId>
-            <artifactId>resolver</artifactId>
-            <version>20050927</version>
-            <scope>provided</scope>
-        </dependency>
 
         <!-- dependencies for xmlbeans maven plugin -->
         <dependency>

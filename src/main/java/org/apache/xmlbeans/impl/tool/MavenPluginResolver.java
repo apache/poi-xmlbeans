@@ -15,22 +15,26 @@
 
 package org.apache.xmlbeans.impl.tool;
 
-import com.sun.org.apache.xml.internal.resolver.CatalogManager;
-import com.sun.org.apache.xml.internal.resolver.tools.CatalogResolver;
-import org.apache.xmlbeans.impl.util.SuppressForbidden;
 import org.xml.sax.EntityResolver;
 
+import javax.xml.catalog.Catalog;
+import javax.xml.catalog.CatalogFeatures;
+import javax.xml.catalog.CatalogManager;
+import java.io.File;
+
 /**
- * Helper class for XML catalogs, which is provided as Java 8 and Java 9+ version (multi release)
+ * Helper class for XML catalogs, based on the JDK {@code javax.xml.catalog} API
  */
-@SuppressForbidden("class is available in Java 8 and multi-release version handles newer official package namespace")
 public class MavenPluginResolver {
     public static EntityResolver getResolver(String catalogLocation) {
         if (catalogLocation == null) {
             return null;
         }
-        CatalogManager catalogManager = CatalogManager.getStaticManager();
-        catalogManager.setCatalogFiles(catalogLocation);
-        return new CatalogResolver(catalogManager);
+
+        CatalogFeatures features = CatalogFeatures.builder()
+            .with(CatalogFeatures.Feature.PREFER, "system")
+            .build();
+        Catalog catalog = CatalogManager.catalog(features, new File(catalogLocation).toURI());
+        return CatalogManager.catalogResolver(catalog);
     }
 }
