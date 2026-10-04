@@ -96,6 +96,27 @@ public class ValueEqualsTest  {
     }
 
     @Test
+    void testCopyEqualsOriginal() throws Exception {
+        CarLocationMessageDocument clm = CarLocationMessageDocument.Factory.parse(CLM);
+
+        // copy() roots the copy at a document, the original is an element in one
+        CarLocationMessageDocument.CarLocationMessage msg = clm.getCarLocationMessage();
+        XmlObject copy = msg.copy();
+        assertTrue(copy.valueEquals(msg));
+        assertTrue(msg.valueEquals(copy));
+
+        XmlObject eventStatus = msg.getEventStatusArray(0);
+        XmlObject eventStatusCopy = eventStatus.copy();
+        assertTrue(eventStatusCopy.valueEquals(eventStatus));
+        assertTrue(eventStatus.valueEquals(eventStatusCopy));
+
+        CarLocationMessageDocument other =
+            CarLocationMessageDocument.Factory.parse(CLM.replace("DALLAS", "AUSTIN"));
+        assertFalse(copy.valueEquals(other.getCarLocationMessage()));
+        assertFalse(other.getCarLocationMessage().valueEquals(copy));
+    }
+
+    @Test
     void testAttributesCompared() throws Exception {
         CarLocationMessageDocument clm1 = CarLocationMessageDocument.Factory.parse(CLM);
 
