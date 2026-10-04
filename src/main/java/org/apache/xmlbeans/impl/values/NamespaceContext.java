@@ -82,8 +82,8 @@ public class NamespaceContext implements PrefixResolver
         }
         final void pop()
         {
-            current = stack.get(stack.size() - 1);
-            stack.remove(stack.size() - 1);
+            // single remove() so a failure cannot leave current and stack out of step
+            current = stack.remove(stack.size() - 1);
         }
     }
 
@@ -112,16 +112,33 @@ public class NamespaceContext implements PrefixResolver
 
     public static void pop()
     {
-        NamespaceContextStack nsContextStack = getNamespaceContextStack();
+        NamespaceContextStack nsContextStack = tl_namespaceContextStack.get();
+        if (nsContextStack == null || nsContextStack.stack.isEmpty())
+        {
+            // unbalanced pop - don't throw (it would mask the original exception), just clean up
+            tl_namespaceContextStack.remove();
+            return;
+        }
+
         nsContextStack.pop();
 
         if (nsContextStack.stack.isEmpty())
-            tl_namespaceContextStack.set(null);
+            tl_namespaceContextStack.remove();
     }
 
     public static PrefixResolver getCurrent()
     {
-        return getNamespaceContextStack().current;
+        // don't create a stack here: nothing would ever remove it from the thread-local
+        NamespaceContextStack nsContextStack = tl_namespaceContextStack.get();
+        return nsContextStack == null ? null : nsContextStack.current;
+    }
+
+    /**
+     * @return true if the current thread has namespace context state (for tests)
+     */
+    static boolean hasThreadLocalState()
+    {
+        return tl_namespaceContextStack.get() != null;
     }
 
     public String getNamespaceForPrefix(String prefix)

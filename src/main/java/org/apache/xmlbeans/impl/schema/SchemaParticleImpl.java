@@ -268,8 +268,8 @@ public class SchemaParticleImpl implements SchemaParticle {
         }
         if (_defaultText != null && XmlAnySimpleType.type.isAssignableFrom(getType())) {
             if (_parseObject != null && XmlQName.type.isAssignableFrom(getType())) {
+                NamespaceContext.push(new NamespaceContext(_parseObject));
                 try {
-                    NamespaceContext.push(new NamespaceContext(_parseObject));
                     return getType().newValue(_defaultText);
                 } finally {
                     NamespaceContext.pop();

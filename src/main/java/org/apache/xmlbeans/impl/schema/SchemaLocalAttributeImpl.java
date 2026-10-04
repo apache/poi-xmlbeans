@@ -124,9 +124,9 @@ public class SchemaLocalAttributeImpl implements SchemaLocalAttribute, SchemaWSD
         {
             if (_parseObject != null)
             {
+                NamespaceContext.push(new NamespaceContext(_parseObject));
                 try
                 {
-                    NamespaceContext.push(new NamespaceContext(_parseObject));
                     return getType().newValue(_defaultText);
                 }
                 finally
