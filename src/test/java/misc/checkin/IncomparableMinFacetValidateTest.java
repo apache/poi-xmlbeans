@@ -21,13 +21,15 @@ import org.apache.xmlbeans.XmlError;
 import org.apache.xmlbeans.XmlObject;
 import org.apache.xmlbeans.XmlOptions;
 import org.apache.xmlbeans.impl.xb.xsdschema.SchemaDocument;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class IncomparableMinFacetValidateTest {
 
@@ -66,50 +68,69 @@ public class IncomparableMinFacetValidateTest {
         return sb.append("</xs:schema>").toString();
     }
 
-    private static boolean validate(String element, String value) throws Exception {
-        SchemaTypeLoader loader = XmlBeans.loadXsd(new XmlObject[]{SchemaDocument.Factory.parse(xsd())});
+    private static SchemaTypeLoader loader;
+
+    @BeforeAll
+    static void compileSchema() throws Exception {
+        loader = XmlBeans.loadXsd(new XmlObject[]{SchemaDocument.Factory.parse(xsd())});
+    }
+
+    // the error codes reported when validating value against the element's facet
+    private static List<String> validate(String element, String value) throws Exception {
         XmlObject doc = loader.parse(
             "<t:" + element + " xmlns:t='urn:t'>" + value + "</t:" + element + ">", null, null);
         List<XmlError> errors = new ArrayList<>();
-        return doc.validate(new XmlOptions().setErrorListener(errors));
+        doc.validate(new XmlOptions().setErrorListener(errors));
+        return errors.stream().map(XmlError::getErrorCode).collect(Collectors.toList());
+    }
+
+    private static void assertValid(String element, String value) throws Exception {
+        assertEquals(Collections.emptyList(), validate(element, value), element + " " + value);
+    }
+
+    // element names end in the facet, and each facet has its own error code
+    private static void assertInvalid(String element, String value) throws Exception {
+        String facet = element.substring(element.indexOf('-') + 1);
+        assertEquals(Collections.singletonList("cvc-" + facet + "-valid"), validate(element, value),
+            element + " " + value);
     }
 
     @Test
     void incomparableDateTimeFailsEveryBound() throws Exception {
         // not greater than, less than, or equal to the bound, so no facet is satisfied
         for (String facet : FACETS) {
-            assertFalse(validate("dt-" + facet, DT_INCOMPARABLE), facet);
+            assertInvalid("dt-" + facet, DT_INCOMPARABLE);
         }
     }
 
     @Test
     void incomparableDurationFailsEveryBound() throws Exception {
         for (String facet : FACETS) {
-            assertFalse(validate("dur-" + facet, DUR_INCOMPARABLE), facet);
+            assertInvalid("dur-" + facet, DUR_INCOMPARABLE);
         }
     }
 
     @Test
     void comparableDateTimeStillChecked() throws Exception {
         // equal to the bound
-        assertTrue(validate("dt-minInclusive", "2000-01-01T12:00:00Z"));
-        assertFalse(validate("dt-minExclusive", "2000-01-01T12:00:00Z"));
+        assertValid("dt-minInclusive", "2000-01-01T12:00:00Z");
+        assertInvalid("dt-minExclusive", "2000-01-01T12:00:00Z");
         // more than 14 hours past the bound, so the missing timezone does not matter
-        assertTrue(validate("dt-minInclusive", "2000-01-03T12:00:00"));
-        assertTrue(validate("dt-minExclusive", "2000-01-03T12:00:00"));
+        assertValid("dt-minInclusive", "2000-01-03T12:00:00");
+        assertValid("dt-minExclusive", "2000-01-03T12:00:00");
         // more than 14 hours short of it
-        assertFalse(validate("dt-minInclusive", "1999-12-30T12:00:00"));
-        assertFalse(validate("dt-minExclusive", "1999-12-30T12:00:00"));
+        assertInvalid("dt-minInclusive", "1999-12-30T12:00:00");
+        assertInvalid("dt-minExclusive", "1999-12-30T12:00:00");
     }
 
     @Test
     void comparableDurationStillChecked() throws Exception {
-        assertTrue(validate("dur-minInclusive", "P30D"));
-        assertFalse(validate("dur-minExclusive", "P30D"));
+        assertValid("dur-minInclusive", "P30D");
+        assertInvalid("dur-minExclusive", "P30D");
         // two months are at least 59 days
-        assertTrue(validate("dur-minInclusive", "P2M"));
-        assertTrue(validate("dur-minExclusive", "P2M"));
-        assertFalse(validate("dur-minInclusive", "P27D"));
-        assertFalse(validate("dur-minExclusive", "P27D"));
+        assertValid("dur-minInclusive", "P2M");
+        assertValid("dur-minExclusive", "P2M");
+        assertInvalid("dur-minInclusive", "P27D");
+        assertInvalid("dur-minExclusive", "P27D");
     }
 }
