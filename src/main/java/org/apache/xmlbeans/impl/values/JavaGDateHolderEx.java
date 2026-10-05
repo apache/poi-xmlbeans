@@ -101,15 +101,20 @@ public abstract class JavaGDateHolderEx extends XmlObjectBase {
             context.invalid(XmlErrorCodes.DATE, new Object[]{"Date (" + v + ") does not have the set of fields required for " + QNameHelper.readable(sType)});
         }
 
+        // compareToGDate returns 2 for an incomparable pair, which satisfies no bound
+        int c;
+
         if ((x = sType.getFacet(SchemaType.FACET_MIN_EXCLUSIVE)) != null) {
-            if (v.compareToGDate(g = ((XmlObjectBase) x).getGDateValue()) <= 0) {
+            c = v.compareToGDate(g = ((XmlObjectBase) x).getGDateValue());
+            if (c <= 0 || c == 2) {
                 context.invalid(XmlErrorCodes.DATATYPE_MIN_EXCLUSIVE_VALID,
                     new Object[]{"date", v, g, QNameHelper.readable(sType)});
             }
         }
 
         if ((x = sType.getFacet(SchemaType.FACET_MIN_INCLUSIVE)) != null) {
-            if (v.compareToGDate(g = ((XmlObjectBase) x).getGDateValue()) < 0) {
+            c = v.compareToGDate(g = ((XmlObjectBase) x).getGDateValue());
+            if (c < 0 || c == 2) {
                 context.invalid(XmlErrorCodes.DATATYPE_MIN_INCLUSIVE_VALID,
                     new Object[]{"date", v, g, QNameHelper.readable(sType)});
             }
