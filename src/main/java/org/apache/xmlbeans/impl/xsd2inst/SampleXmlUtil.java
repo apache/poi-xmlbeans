@@ -650,249 +650,119 @@ public class SampleXmlUtil {
     }
 
     private String formatDate(SchemaType sType) {
+        int btc = sType.getPrimitiveType().getBuiltinTypeCode();
         GDateBuilder gdateb = new GDateBuilder(new Date(1000L * pick(365 * 24 * 60 * 60) + (30L + pick(20)) * 365 * 24 * 60 * 60 * 1000));
-        GDate min = null, max = null;
-
-        // Find the min and the max according to the type
-        switch (sType.getPrimitiveType().getBuiltinTypeCode()) {
-            case SchemaType.BTC_DATE_TIME: {
-                XmlDateTime x = (XmlDateTime) sType.getFacet(SchemaType.FACET_MIN_INCLUSIVE);
-                if (x != null) {
-                    min = x.getGDateValue();
-                }
-                x = (XmlDateTime) sType.getFacet(SchemaType.FACET_MIN_EXCLUSIVE);
-                if (x != null) {
-                    if (min == null || min.compareToGDate(x.getGDateValue()) <= 0) {
-                        min = x.getGDateValue();
-                    }
-                }
-
-                x = (XmlDateTime) sType.getFacet(SchemaType.FACET_MAX_INCLUSIVE);
-                if (x != null) {
-                    max = x.getGDateValue();
-                }
-                x = (XmlDateTime) sType.getFacet(SchemaType.FACET_MAX_EXCLUSIVE);
-                if (x != null) {
-                    if (max == null || max.compareToGDate(x.getGDateValue()) >= 0) {
-                        max = x.getGDateValue();
-                    }
-                }
-                break;
-            }
-            case SchemaType.BTC_TIME: {
-                XmlTime x = (XmlTime) sType.getFacet(SchemaType.FACET_MIN_INCLUSIVE);
-                if (x != null) {
-                    min = x.getGDateValue();
-                }
-                x = (XmlTime) sType.getFacet(SchemaType.FACET_MIN_EXCLUSIVE);
-                if (x != null) {
-                    if (min == null || min.compareToGDate(x.getGDateValue()) <= 0) {
-                        min = x.getGDateValue();
-                    }
-                }
-
-                x = (XmlTime) sType.getFacet(SchemaType.FACET_MAX_INCLUSIVE);
-                if (x != null) {
-                    max = x.getGDateValue();
-                }
-                x = (XmlTime) sType.getFacet(SchemaType.FACET_MAX_EXCLUSIVE);
-                if (x != null) {
-                    if (max == null || max.compareToGDate(x.getGDateValue()) >= 0) {
-                        max = x.getGDateValue();
-                    }
-                }
-                break;
-            }
-            case SchemaType.BTC_DATE: {
-                XmlDate x = (XmlDate) sType.getFacet(SchemaType.FACET_MIN_INCLUSIVE);
-                if (x != null) {
-                    min = x.getGDateValue();
-                }
-                x = (XmlDate) sType.getFacet(SchemaType.FACET_MIN_EXCLUSIVE);
-                if (x != null) {
-                    if (min == null || min.compareToGDate(x.getGDateValue()) <= 0) {
-                        min = x.getGDateValue();
-                    }
-                }
-
-                x = (XmlDate) sType.getFacet(SchemaType.FACET_MAX_INCLUSIVE);
-                if (x != null) {
-                    max = x.getGDateValue();
-                }
-                x = (XmlDate) sType.getFacet(SchemaType.FACET_MAX_EXCLUSIVE);
-                if (x != null) {
-                    if (max == null || max.compareToGDate(x.getGDateValue()) >= 0) {
-                        max = x.getGDateValue();
-                    }
-                }
-                break;
-            }
-            case SchemaType.BTC_G_YEAR_MONTH: {
-                XmlGYearMonth x = (XmlGYearMonth) sType.getFacet(SchemaType.FACET_MIN_INCLUSIVE);
-                if (x != null) {
-                    min = x.getGDateValue();
-                }
-                x = (XmlGYearMonth) sType.getFacet(SchemaType.FACET_MIN_EXCLUSIVE);
-                if (x != null) {
-                    if (min == null || min.compareToGDate(x.getGDateValue()) <= 0) {
-                        min = x.getGDateValue();
-                    }
-                }
-
-                x = (XmlGYearMonth) sType.getFacet(SchemaType.FACET_MAX_INCLUSIVE);
-                if (x != null) {
-                    max = x.getGDateValue();
-                }
-                x = (XmlGYearMonth) sType.getFacet(SchemaType.FACET_MAX_EXCLUSIVE);
-                if (x != null) {
-                    if (max == null || max.compareToGDate(x.getGDateValue()) >= 0) {
-                        max = x.getGDateValue();
-                    }
-                }
-                break;
-            }
-            case SchemaType.BTC_G_YEAR: {
-                XmlGYear x = (XmlGYear) sType.getFacet(SchemaType.FACET_MIN_INCLUSIVE);
-                if (x != null) {
-                    min = x.getGDateValue();
-                }
-                x = (XmlGYear) sType.getFacet(SchemaType.FACET_MIN_EXCLUSIVE);
-                if (x != null) {
-                    if (min == null || min.compareToGDate(x.getGDateValue()) <= 0) {
-                        min = x.getGDateValue();
-                    }
-                }
-
-                x = (XmlGYear) sType.getFacet(SchemaType.FACET_MAX_INCLUSIVE);
-                if (x != null) {
-                    max = x.getGDateValue();
-                }
-                x = (XmlGYear) sType.getFacet(SchemaType.FACET_MAX_EXCLUSIVE);
-                if (x != null) {
-                    if (max == null || max.compareToGDate(x.getGDateValue()) >= 0) {
-                        max = x.getGDateValue();
-                    }
-                }
-                break;
-            }
-            case SchemaType.BTC_G_MONTH_DAY: {
-                XmlGMonthDay x = (XmlGMonthDay) sType.getFacet(SchemaType.FACET_MIN_INCLUSIVE);
-                if (x != null) {
-                    min = x.getGDateValue();
-                }
-                x = (XmlGMonthDay) sType.getFacet(SchemaType.FACET_MIN_EXCLUSIVE);
-                if (x != null) {
-                    if (min == null || min.compareToGDate(x.getGDateValue()) <= 0) {
-                        min = x.getGDateValue();
-                    }
-                }
-
-                x = (XmlGMonthDay) sType.getFacet(SchemaType.FACET_MAX_INCLUSIVE);
-                if (x != null) {
-                    max = x.getGDateValue();
-                }
-                x = (XmlGMonthDay) sType.getFacet(SchemaType.FACET_MAX_EXCLUSIVE);
-                if (x != null) {
-                    if (max == null || max.compareToGDate(x.getGDateValue()) >= 0) {
-                        max = x.getGDateValue();
-                    }
-                }
-                break;
-            }
-            case SchemaType.BTC_G_DAY: {
-                XmlGDay x = (XmlGDay) sType.getFacet(SchemaType.FACET_MIN_INCLUSIVE);
-                if (x != null) {
-                    min = x.getGDateValue();
-                }
-                x = (XmlGDay) sType.getFacet(SchemaType.FACET_MIN_EXCLUSIVE);
-                if (x != null) {
-                    if (min == null || min.compareToGDate(x.getGDateValue()) <= 0) {
-                        min = x.getGDateValue();
-                    }
-                }
-
-                x = (XmlGDay) sType.getFacet(SchemaType.FACET_MAX_INCLUSIVE);
-                if (x != null) {
-                    max = x.getGDateValue();
-                }
-                x = (XmlGDay) sType.getFacet(SchemaType.FACET_MAX_EXCLUSIVE);
-                if (x != null) {
-                    if (max == null || max.compareToGDate(x.getGDateValue()) >= 0) {
-                        max = x.getGDateValue();
-                    }
-                }
-                break;
-            }
-            case SchemaType.BTC_G_MONTH: {
-                XmlGMonth x = (XmlGMonth) sType.getFacet(SchemaType.FACET_MIN_INCLUSIVE);
-                if (x != null) {
-                    min = x.getGDateValue();
-                }
-                x = (XmlGMonth) sType.getFacet(SchemaType.FACET_MIN_EXCLUSIVE);
-                if (x != null) {
-                    if (min == null || min.compareToGDate(x.getGDateValue()) <= 0) {
-                        min = x.getGDateValue();
-                    }
-                }
-
-                x = (XmlGMonth) sType.getFacet(SchemaType.FACET_MAX_INCLUSIVE);
-                if (x != null) {
-                    max = x.getGDateValue();
-                }
-                x = (XmlGMonth) sType.getFacet(SchemaType.FACET_MAX_EXCLUSIVE);
-                if (x != null) {
-                    if (max == null || max.compareToGDate(x.getGDateValue()) >= 0) {
-                        max = x.getGDateValue();
-                    }
-                }
-                break;
-            }
-        }
-
-        if (min != null && max == null) {
-            if (min.compareToGDate(gdateb) >= 0) {
-                // Reset the date to min + (1-8) hours
-                Calendar c = gdateb.getCalendar();
-                c.add(Calendar.HOUR_OF_DAY, pick(8));
-                gdateb = new GDateBuilder(c);
-            }
-        } else if (min == null && max != null) {
-            if (max.compareToGDate(gdateb) <= 0) {
-                // Reset the date to max - (1-8) hours
-                Calendar c = gdateb.getCalendar();
-                c.add(Calendar.HOUR_OF_DAY, -pick(8));
-                gdateb = new GDateBuilder(c);
-            }
-        } else if (min != null && max != null) {
-            if (min.compareToGDate(gdateb) >= 0 || max.compareToGDate(gdateb) <= 0) {
-                // Find a date between the two
-                Calendar c = min.getCalendar();
-                Calendar cmax = max.getCalendar();
-                c.add(Calendar.HOUR_OF_DAY, 1);
-                if (c.after(cmax)) {
-                    c.add(Calendar.HOUR_OF_DAY, -1);
-                    c.add(Calendar.MINUTE, 1);
-                    if (c.after(cmax)) {
-                        c.add(Calendar.MINUTE, -1);
-                        c.add(Calendar.SECOND, 1);
-                        if (c.after(cmax)) {
-                            c.add(Calendar.SECOND, -1);
-                            c.add(Calendar.MILLISECOND, 1);
-                            if (c.after(cmax)) {
-                                c.add(Calendar.MILLISECOND, -1);
-                            }
-                        }
-                    }
-                }
-                gdateb = new GDateBuilder(c);
-            }
-        }
-
-        gdateb.setBuiltinTypeCode(sType.getPrimitiveType().getBuiltinTypeCode());
+        gdateb.setBuiltinTypeCode(btc);
         if (pick(2) == 0) {
             gdateb.clearTimeZone();
         }
+        if (satisfiesBounds(gdateb, sType)) {
+            return gdateb.toString();
+        }
+
+        // Step off a bound by the smallest unit the type shows
+        GDuration[] steps;
+        switch (btc) {
+            case SchemaType.BTC_DATE_TIME:
+                steps = new GDuration[]{new GDuration("P1D"), new GDuration("PT1H"), new GDuration("PT1M"),
+                    new GDuration("PT1S"), new GDuration("PT0.001S")};
+                break;
+            case SchemaType.BTC_TIME:
+                steps = new GDuration[]{new GDuration("PT1H"), new GDuration("PT1M"),
+                    new GDuration("PT1S"), new GDuration("PT0.001S")};
+                break;
+            case SchemaType.BTC_G_YEAR:
+                steps = new GDuration[]{new GDuration("P1Y")};
+                break;
+            case SchemaType.BTC_G_YEAR_MONTH:
+            case SchemaType.BTC_G_MONTH:
+                steps = new GDuration[]{new GDuration("P1M")};
+                break;
+            default:
+                steps = new GDuration[]{new GDuration("P1D")};
+                break;
+        }
+
+        GDate min = facetDate(sType, SchemaType.FACET_MIN_EXCLUSIVE);
+        if (min == null) {
+            min = facetDate(sType, SchemaType.FACET_MIN_INCLUSIVE);
+        }
+        GDate max = facetDate(sType, SchemaType.FACET_MAX_EXCLUSIVE);
+        if (max == null) {
+            max = facetDate(sType, SchemaType.FACET_MAX_INCLUSIVE);
+        }
+
+        for (GDate bound : new GDate[]{min, max}) {
+            if (bound == null) {
+                continue;
+            }
+            if (satisfiesBounds(bound, sType)) {
+                return bound.toString();
+            }
+            for (GDuration step : steps) {
+                GDateBuilder candidate = stepFrom(bound, step, bound == min, btc);
+                if (candidate != null && satisfiesBounds(candidate, sType)) {
+                    return candidate.toString();
+                }
+            }
+        }
+
+        // the bounds leave no value we can find
         return gdateb.toString();
+    }
+
+    private static GDate facetDate(SchemaType sType, int facet) {
+        XmlObject x = sType.getFacet(facet);
+        return x == null ? null : ((SimpleValue) x).getGDateValue();
+    }
+
+    // compareToGDate returns 2 for an incomparable pair, which satisfies no bound
+    private static boolean satisfiesBounds(GDateSpecification d, SchemaType sType) {
+        GDate g;
+        int c;
+        if ((g = facetDate(sType, SchemaType.FACET_MIN_EXCLUSIVE)) != null && d.compareToGDate(g) != 1) {
+            return false;
+        }
+        if ((g = facetDate(sType, SchemaType.FACET_MIN_INCLUSIVE)) != null &&
+            (c = d.compareToGDate(g)) != 0 && c != 1) {
+            return false;
+        }
+        if ((g = facetDate(sType, SchemaType.FACET_MAX_EXCLUSIVE)) != null && d.compareToGDate(g) != -1) {
+            return false;
+        }
+        return (g = facetDate(sType, SchemaType.FACET_MAX_INCLUSIVE)) == null ||
+            (c = d.compareToGDate(g)) == 0 || c == -1;
+    }
+
+    private static GDateBuilder stepFrom(GDate bound, GDuration step, boolean up, int btc) {
+        // date arithmetic needs a complete date and time, so fill in what the
+        // type leaves out and drop it again afterwards; 2000 is a leap year, so
+        // --02-29 survives
+        GDateBuilder b = new GDateBuilder(bound);
+        try {
+            if (!b.hasYear()) {
+                b.setYear(2000);
+            }
+            if (!b.hasMonth()) {
+                b.setMonth(1);
+            }
+            if (!b.hasDay()) {
+                b.setDay(1);
+            }
+            if (!b.hasTime()) {
+                b.setTime(0, 0, 0, null);
+            }
+            if (up) {
+                b.addGDuration(step);
+            } else {
+                b.subtractGDuration(step);
+            }
+        } catch (IllegalArgumentException | IllegalStateException | ArithmeticException e) {
+            // stepped past the range of years a GDate can hold
+            return null;
+        }
+        b.setBuiltinTypeCode(btc);
+        return b;
     }
 
     private SchemaType closestBuiltin(SchemaType sType) {
