@@ -106,6 +106,44 @@ public class Xsd2InstTest {
         assertTrue(unconstrained.contains("<value>1000.00</value>"), unconstrained);
     }
 
+    private static SchemaTypeSystem simpleTypeSchema(String base, String facets) throws Exception {
+        XmlObject xsd = XmlObject.Factory.parse("<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>" +
+            "<xs:element name='value'><xs:simpleType>" +
+            "<xs:restriction base='xs:" + base + "'>" + facets + "</xs:restriction>" +
+            "</xs:simpleType></xs:element></xs:schema>");
+        return XmlBeans.compileXsd(new XmlObject[]{xsd}, XmlBeans.getBuiltinTypeSystem(), new XmlOptions());
+    }
+
+    @Test
+    void testDateSamplesSatisfyTheirBounds() throws Exception {
+        // the random seed is a full dateTime, so for the other date types the facet
+        // checks compared values that were never comparable, and the bounds were
+        // ignored. The seed and the timezone are random, so try each case repeatedly.
+        String[][] cases = {
+            {"dateTime", "<xs:minInclusive value='2100-01-01T00:00:00Z'/>"},
+            {"dateTime", "<xs:maxExclusive value='1900-01-01T00:00:00'/>"},
+            {"dateTime", "<xs:minExclusive value='2010-01-01T00:00:00Z'/>" +
+                "<xs:maxExclusive value='2010-01-01T00:00:01Z'/>"},
+            {"time", "<xs:minInclusive value='10:00:00'/><xs:maxInclusive value='10:00:30'/>"},
+            {"date", "<xs:minExclusive value='2100-01-01'/>"},
+            {"date", "<xs:maxInclusive value='1900-06-30Z'/>"},
+            {"gYearMonth", "<xs:maxInclusive value='1950-06'/>"},
+            {"gYear", "<xs:minInclusive value='2100'/>"},
+            {"gYear", "<xs:maxExclusive value='1900'/>"},
+            {"gMonthDay", "<xs:minInclusive value='--12-25'/>"},
+            {"gMonth", "<xs:minExclusive value='--10'/>"},
+            {"gDay", "<xs:maxInclusive value='---03'/>"},
+        };
+        for (String[] c : cases) {
+            SchemaTypeSystem sts = simpleTypeSchema(c[0], c[1]);
+            for (int i = 0; i < 20; i++) {
+                String sample = SampleXmlUtil.createSampleForType(sts.globalElements()[0]);
+                XmlObject doc = sts.parse(sample, null, null);
+                assertTrue(doc.validate(), c[0] + " " + c[1] + ": " + sample);
+            }
+        }
+    }
+
     @Test
     void testSampleXmlUtil() throws Exception {
         XmlObject xobj;
