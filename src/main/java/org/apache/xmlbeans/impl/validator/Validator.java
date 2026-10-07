@@ -373,7 +373,7 @@ public final class Validator
             }
 
             if (elementType.blockExtension()) {
-                for (SchemaType t = xsiType; !t.equals(elementType);
+                for (SchemaType t = xsiType; t != null && !t.equals(elementType);
                      t = t.getBaseType()) {
                     if (t.getDerivationType() == SchemaType.DT_EXTENSION) {
                         emitFieldError(event, XmlErrorCodes.ELEM_LOCALLY_VALID$XSI_TYPE_BLOCK_EXTENSION,
@@ -388,7 +388,7 @@ public final class Validator
             }
 
             if (elementType.blockRestriction()) {
-                for (SchemaType t = xsiType; !t.equals(elementType);
+                for (SchemaType t = xsiType; t != null && !t.equals(elementType);
                      t = t.getBaseType()) {
                     if (t.getDerivationType() == SchemaType.DT_RESTRICTION) {
                         emitFieldError(event, XmlErrorCodes.ELEM_LOCALLY_VALID$XSI_TYPE_BLOCK_RESTRICTION,
@@ -406,7 +406,7 @@ public final class Validator
                 _localElement = sle;
 
                 if (sle.blockExtension() || sle.blockRestriction()) {
-                    for (SchemaType t = xsiType; !t.equals(elementType);
+                    for (SchemaType t = xsiType; t != null && !t.equals(elementType);
                          t = t.getBaseType()) {
                         if ((t.getDerivationType() == SchemaType.DT_RESTRICTION && sle.blockRestriction()) ||
                             (t.getDerivationType() == SchemaType.DT_EXTENSION && sle.blockExtension())) {
