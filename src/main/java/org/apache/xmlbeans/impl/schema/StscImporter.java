@@ -225,7 +225,7 @@ public class StscImporter {
     //workaround for Sun bug # 4723726
     public static URI resolve(URI base, String child)
         throws URISyntaxException {
-        URI childUri = new URI(child);
+        URI childUri = new URI(child.replace('\\', '/'));
         URI ruri = base.resolve(childUri);
 
         // if the child fragment is relative (which we'll assume is the case
@@ -502,6 +502,9 @@ public class StscImporter {
                         XmlOptions options = new XmlOptions();
                         options.setLoadLineNumbers();
                         options.setDocumentSourceName(absoluteURL);
+                        options.setCompileNoAnnotations(state.noAnn());
+                        options.setCompileNoPvrRule(state.noPvr());
+                        options.setCompileNoPvrRule(state.noUpa());
                         return loader.parse(reader, null, options);
                     }
 
