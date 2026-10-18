@@ -203,7 +203,7 @@ public class StscImporter {
 
         // looks like a URL?
         int colon = path.indexOf(':');
-        if (colon > 1 && path.substring(0, colon).matches("^\\w+$")) {
+        if (colon > 1 && StscState.isWordPrefix(path, colon)) {
             return path;
         }
 

@@ -1350,6 +1350,23 @@ public class StscState {
         return relativize(uri, true);
     }
 
+    /**
+     * @return true if the first <var>end</var> chars of <var>s</var> are all
+     * regex word chars ({@code [a-zA-Z_0-9]}), i.e. {@code s.substring(0, end).matches("\\w+")}
+     */
+    static boolean isWordPrefix(String s, int end) {
+        if (end <= 0) {
+            return false;
+        }
+        for (int i = 0; i < end; i++) {
+            char c = s.charAt(i);
+            if (!((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_')) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     private String relativize(String uri, boolean forSavedFilename) {
         if (uri == null) {
             return null;
@@ -1361,7 +1378,7 @@ public class StscState {
         } else {
             // looks like a URL?
             int colon = uri.indexOf(':');
-            if (colon <= 1 || !uri.substring(0, colon).matches("^\\w+$")) {
+            if (colon <= 1 || !isWordPrefix(uri, colon)) {
                 uri = PROJECT_URL_PREFIX + "/" + uri.replace('\\', '/');
             }
         }

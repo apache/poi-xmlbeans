@@ -75,8 +75,7 @@ public class CodeGenUtil {
         }
 
         // bizarre.  javac expects backslash escaping if we quote the classpath
-        // bizarre also.  replaceAll expects replacement backslashes to be double escaped.
-        return "\"" + filename.replaceAll("\\\\", "\\\\\\\\") + "\"";
+        return "\"" + filename.replace("\\", "\\\\") + "\"";
     }
 
 

@@ -18,8 +18,10 @@
 package org.apache.xmlbeans.impl.regex;
 
 import java.text.CharacterIterator;
+import java.util.ArrayDeque;
+import java.util.Arrays;
+import java.util.Deque;
 import java.util.Locale;
-import java.util.Stack;
 
 /**
  * A regular expression matching engine using Non-deterministic Finite Automaton (NFA).
@@ -1023,7 +1025,7 @@ public class RegularExpression implements java.io.Serializable {
      */
     private int match(Context con, Op op, int offset, int dx, int opts) {
         final ExpressionTarget target = con.target;
-        final Stack<Op> opStack = new Stack<>();
+        final Deque<Op> opStack = new ArrayDeque<>();
         final IntStack dataStack = new IntStack();
         final boolean isSetIgnoreCase = isSet(opts, IGNORE_CASE);
         int retValue = -1;
@@ -1957,37 +1959,82 @@ public class RegularExpression implements java.io.Serializable {
 
     static final class ClosureContext {
 
-        int[] offsets = new int[4];
-        int currentIndex = 0;
+        // An open-addressing hash set of the offsets seen. A plain list made
+        // contains() a linear scan, so matching a closure such as \c+ was
+        // quadratic. A bit set would be sized by the largest offset rather than
+        // by the number of offsets seen, which is bad for sparse offsets.
+        private static final int EMPTY = Integer.MIN_VALUE;
+        private static final int INITIAL_CAPACITY = 16;
+
+        private int[] offsets = newTable(INITIAL_CAPACITY);
+        private int shift = 32 - Integer.numberOfTrailingZeros(INITIAL_CAPACITY);
+        private int size = 0;
 
         boolean contains(int offset) {
-            for (int i=0; i<currentIndex;++i) {
-                if (offsets[i] == offset) {
+            final int mask = offsets.length - 1;
+            for (int i = slot(offset); ; i = (i + 1) & mask) {
+                final int o = offsets[i];
+                if (o == offset) {
                     return true;
                 }
+                if (o == EMPTY) {
+                    return false;
+                }
             }
-            return false;
         }
 
         void reset() {
-            currentIndex = 0;
+            if (size == 0) {
+                return;
+            }
+            if (offsets.length > INITIAL_CAPACITY) {
+                // don't hold on to the table grown by a long match
+                offsets = newTable(INITIAL_CAPACITY);
+                shift = 32 - Integer.numberOfTrailingZeros(INITIAL_CAPACITY);
+            } else {
+                Arrays.fill(offsets, EMPTY);
+            }
+            size = 0;
         }
 
         void addOffset(int offset) {
             // We do not check for duplicates, caller is responsible for that
-            if (currentIndex == offsets.length) {
-                offsets = expandOffsets();
+            if ((size + 1) * 2 > offsets.length) {
+                grow();
             }
-            offsets[currentIndex++] = offset;
+            insert(offsets, offset);
+            size++;
         }
 
-        private int[] expandOffsets() {
-            final int len = offsets.length;
-            final int newLen = len << 1;
-            int[] newOffsets = new int[newLen];
+        private int slot(int offset) {
+            // Fibonacci hashing, as offsets are often consecutive or strided
+            return (offset * 0x9E3779B9) >>> shift;
+        }
 
-            System.arraycopy(offsets, 0, newOffsets, 0, currentIndex);
-            return newOffsets;
+        private void insert(int[] table, int offset) {
+            final int mask = table.length - 1;
+            int i = slot(offset);
+            while (table[i] != EMPTY) {
+                i = (i + 1) & mask;
+            }
+            table[i] = offset;
+        }
+
+        private void grow() {
+            final int[] old = offsets;
+            offsets = newTable(old.length << 1);
+            shift--;
+            for (int o : old) {
+                if (o != EMPTY) {
+                    insert(offsets, o);
+                }
+            }
+        }
+
+        private static int[] newTable(int capacity) {
+            final int[] table = new int[capacity];
+            Arrays.fill(table, EMPTY);
+            return table;
         }
     }
 

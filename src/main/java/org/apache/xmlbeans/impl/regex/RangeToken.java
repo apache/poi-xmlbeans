@@ -15,6 +15,8 @@
 
 package org.apache.xmlbeans.impl.regex;
 
+import java.util.Arrays;
+
 /**
  * This class represents a character class such as [a-z] or a period.
  */
@@ -26,6 +28,8 @@ final class RangeToken extends Token implements java.io.Serializable {
     RangeToken icaseCache = null;
     int[] map = null;
     int nonMapIndex;
+    // ranges from nonMapIndex on, merged so that they can be binary searched
+    private transient int[] highRanges = null;
 
     RangeToken(int type) {
         super(type);
@@ -491,32 +495,37 @@ final class RangeToken extends Token implements java.io.Serializable {
     }
 
     boolean match(int ch) {
-        if (this.map == null) {
+        int[] high = this.highRanges;
+        if (this.map == null || high == null) {
             this.createMap();
+            high = this.highRanges;
         }
-        boolean ret;
-        if (this.type == RANGE) {
-            if (ch < MAPSIZE) {
-                return (this.map[ch / 32] & (1 << (ch & 0x1f))) != 0;
-            }
-            ret = false;
-            for (int i = this.nonMapIndex; i < this.ranges.length; i += 2) {
-                if (this.ranges[i] <= ch && ch <= this.ranges[i + 1]) {
-                    return true;
-                }
-            }
+        boolean in;
+        if (ch < MAPSIZE) {
+            in = (this.map[ch / 32] & (1 << (ch & 0x1f))) != 0;
         } else {
-            if (ch < MAPSIZE) {
-                return (this.map[ch / 32] & (1 << (ch & 0x1f))) == 0;
-            }
-            ret = true;
-            for (int i = this.nonMapIndex; i < this.ranges.length; i += 2) {
-                if (this.ranges[i] <= ch && ch <= this.ranges[i + 1]) {
-                    return false;
-                }
+            in = inHighRanges(high, ch);
+        }
+        return (this.type == RANGE) == in;
+    }
+
+    /**
+     * Binary search of the sorted, non-overlapping ranges built by createMap().
+     */
+    private static boolean inHighRanges(int[] high, int ch) {
+        int lo = 0;
+        int hi = high.length / 2 - 1;
+        while (lo <= hi) {
+            int mid = (lo + hi) >>> 1;
+            if (high[mid * 2] > ch) {
+                hi = mid - 1;
+            } else if (high[mid * 2 + 1] < ch) {
+                lo = mid + 1;
+            } else {
+                return true;
             }
         }
-        return ret;
+        return false;
     }
 
     private static final int MAPSIZE = 256;
@@ -550,8 +559,27 @@ final class RangeToken extends Token implements java.io.Serializable {
             }
         }
         this.nonMapIndex = localnonMapIndex; // +
+        this.highRanges = mergeRanges(this.ranges, localnonMapIndex);
         this.map = localmap; // +
         //for (int i = 0;  i < asize;  i ++)  System.err.println("Map: "+Integer.toString(this.map[i], 16));
+    }
+
+    /**
+     * Copies the sorted ranges from <var>from</var> on, merging any that overlap
+     * or touch, as uncompacted ranges are sorted but may still overlap.
+     */
+    private static int[] mergeRanges(int[] ranges, int from) {
+        int[] merged = new int[ranges.length - from];
+        int n = 0;
+        for (int i = from; i < ranges.length; i += 2) {
+            if (n > 0 && ranges[i] <= merged[n - 1] + 1) {
+                merged[n - 1] = Math.max(merged[n - 1], ranges[i + 1]);
+            } else {
+                merged[n++] = ranges[i];
+                merged[n++] = ranges[i + 1];
+            }
+        }
+        return n == merged.length ? merged : Arrays.copyOf(merged, n);
     }
 
     public String toString(int options) {

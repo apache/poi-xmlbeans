@@ -231,7 +231,7 @@ public class MavenPlugin extends AbstractMojo {
         final Collection<File> schemaFiles = FileUtil.find(base, pat, recurseSourceSubdirs);
         for (File sf : schemaFiles) {
             String name = sf.getName();
-            switch (name.replaceAll(".*\\.", "")) {
+            switch (name.substring(name.lastIndexOf('.') + 1)) {
                 case "wsdl":
                     wsdls.add(sf);
                     break;

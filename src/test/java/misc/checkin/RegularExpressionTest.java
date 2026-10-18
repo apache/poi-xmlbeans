@@ -19,10 +19,13 @@ import org.apache.xmlbeans.impl.regex.ParseException;
 import org.apache.xmlbeans.impl.regex.RegularExpression;
 import org.junit.jupiter.api.Test;
 
+import java.time.Duration;
 import java.util.Random;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class RegularExpressionTest {
@@ -78,7 +81,36 @@ public class RegularExpressionTest {
     }
 
 
-    private static final String AB = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    @Test
+    void testLongClosureIsLinear() {
+        // each closure iteration records its offset to stop zero-width repeats; those
+        // offsets used to be kept in a list that was scanned on every iteration, which
+        // made this match quadratic (a 50,000 char name took seconds, 1M chars minutes)
+        String s = "a".repeat(1_000_000);
+        RegularExpression regex = new RegularExpression("\\c+", "X");
+        assertTimeoutPreemptively(Duration.ofSeconds(30), () -> assertTrue(regex.matches(s)));
+    }
+
+    @Test
+    void testCharClassAboveLatin1() {
+        // chars >= 256 are looked up by binary search of the class ranges rather
+        // than the latin-1 bitmap, so check every code point against java.util.regex
+        String ranges = "a-zà-ŐЀ-ӿぁ-ゖ一-鿿😀-🙏";
+        RegularExpression pos = new RegularExpression("[" + ranges + "]", "X");
+        RegularExpression neg = new RegularExpression("[^" + ranges + "]", "X");
+        java.util.regex.Pattern expected = java.util.regex.Pattern.compile("[" + ranges + "]");
+        for (int cp = 0; cp <= Character.MAX_CODE_POINT; cp++) {
+            if (Character.getType(cp) == Character.SURROGATE) {
+                continue;
+            }
+            String s = new String(Character.toChars(cp));
+            boolean in = expected.matcher(s).matches();
+            assertEquals(in, pos.matches(s), () -> "positive class, code point " + Integer.toHexString(s.codePointAt(0)));
+            assertEquals(!in, neg.matches(s), () -> "negated class, code point " + Integer.toHexString(s.codePointAt(0)));
+        }
+    }
+
+    private static final String AB ="0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     private static final Random rnd = new Random();
 
     private String randomString(int len) {
