@@ -33,20 +33,43 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 
+
 public class StscImporterResolveTest {
 
-    private static final URI JAR_BASE = URI.create("jar:file:/tmp/schemas.jar!/xsd/a.xsd");
+    private static final String JAR = "jar:file:/nonexistent/schemas.jar!";
+    private static final URI JAR_BASE = URI.create(JAR + "/xsd/a.xsd");
 
     @Test
     void resolvesParentInsideJar() throws Exception {
-        assertEquals("jar:file:/tmp/schemas.jar!/common/b.xsd",
+        assertEquals(JAR + "/common/b.xsd",
             StscImporter.resolve(JAR_BASE, "../common/b.xsd").toString());
     }
 
     @Test
-    void parentAboveJarRootTerminates() {
-        assertTimeoutPreemptively(Duration.ofSeconds(10), () ->
+    void resolvesCurrentDirInsideJar() throws Exception {
+        assertEquals(JAR + "/xsd/common/b.xsd",
+            StscImporter.resolve(JAR_BASE, "./common/./b.xsd").toString());
+    }
+
+    @Test
+    void keepsDotDotPrefixedNames() throws Exception {
+        assertEquals(JAR + "/xsd/..b.xsd",
+            StscImporter.resolve(JAR_BASE, "..b.xsd").toString());
+        assertEquals(JAR + "/xsd/.../b.xsd",
+            StscImporter.resolve(JAR_BASE, ".../b.xsd").toString());
+    }
+
+    @Test
+    void keepsFragment() throws Exception {
+        assertEquals(JAR + "/common/b.xsd#frag",
+            StscImporter.resolve(JAR_BASE, "../common/b.xsd#frag").toString());
+    }
+
+    @Test
+    void parentAboveJarRootIsLeftUnresolved() {
+        URI resolved = assertTimeoutPreemptively(Duration.ofSeconds(10), () ->
             StscImporter.resolve(JAR_BASE, "../../b.xsd"));
+        assertEquals(JAR + "/../b.xsd", resolved.toString());
     }
 
     @Test

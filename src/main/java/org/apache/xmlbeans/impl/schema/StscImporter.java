@@ -240,20 +240,12 @@ public class StscImporter {
             r = r.substring(0, lastslash) + "/" + childUri;
             // Sun's implementation of URI doesn't support references to the
             // parent directory ("/..") in the part after "!/" so we have to
-            // remove these ourselves
+            // normalize the entry path ourselves. ".." segments that climb
+            // above the root of the jar are left in place, so the lookup fails.
             int exclPointSlashIndex = r.lastIndexOf("!/");
             if (exclPointSlashIndex > 0) {
-                int slashDotDotIndex = r.indexOf("/..", exclPointSlashIndex);
-                while (slashDotDotIndex > 0) {
-                    int prevSlashIndex = r.lastIndexOf("/", slashDotDotIndex - 1);
-                    if (prevSlashIndex < exclPointSlashIndex) {
-                        // ".." above the root of the jar, leave it unresolved
-                        break;
-                    }
-                    String temp = r.substring(slashDotDotIndex + 3);
-                    r = r.substring(0, prevSlashIndex).concat(temp);
-                    slashDotDotIndex = r.indexOf("/..", exclPointSlashIndex);
-                }
+                String entry = r.substring(exclPointSlashIndex + 1);
+                r = r.substring(0, exclPointSlashIndex + 1) + new URI(entry).normalize();
             }
             return URI.create(r);
         }
