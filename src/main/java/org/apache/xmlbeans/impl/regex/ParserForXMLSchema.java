@@ -363,11 +363,16 @@ class ParserForXMLSchema extends RegexParser {
             ranges.put("xml:isDigit", tok);
             ranges2.put("xml:isDigit", Token.complementRanges(tok));
 
+            /*
+             * \w is defined by the XML Schema specification to be:
+             * [#x0000-#x10FFFF]-[\p{P}\p{Z}\p{C}] (all characters except the set of "punctuation", "separator" and "other" characters)
+             */
             tok = Token.createRange();
-            setupRange(tok, LETTERS);
-            tok.mergeRanges(ranges.get("xml:isDigit"));
-            ranges.put("xml:isWord", tok);
-            ranges2.put("xml:isWord", Token.complementRanges(tok));
+            tok.mergeRanges(Token.getRange("P", true));
+            tok.mergeRanges(Token.getRange("Z", true));
+            tok.mergeRanges(Token.getRange("C", true));
+            ranges2.put("xml:isWord", tok);
+            ranges.put("xml:isWord", Token.complementRanges(tok));
 
             tok = Token.createRange();
             setupRange(tok, NAMECHARS);
