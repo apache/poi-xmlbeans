@@ -888,10 +888,15 @@ public class XQuerySchemaTypeSystem extends SchemaTypeLoaderBase implements
             case SchemaType.BTC_LANGUAGE:
             case SchemaType.BTC_ID:
             case SchemaType.BTC_IDREF:
-            case SchemaType.BTC_IDREFS:
             case SchemaType.BTC_ENTITY:
             case SchemaType.BTC_NMTOKEN:
                 facets = FACETS_WS_COLLAPSE;
+                fixedf = FIXED_FACETS_NONE;
+                wsr = SchemaType.WS_COLLAPSE;
+                break;
+
+            case SchemaType.BTC_IDREFS:
+                facets = FACETS_BUILTIN_LIST;
                 fixedf = FIXED_FACETS_NONE;
                 wsr = SchemaType.WS_COLLAPSE;
                 break;
