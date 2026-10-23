@@ -611,7 +611,7 @@ public final class Validator
                             new Object[]{QNameHelper.pretty(sla.getName())},
                             sla.getName(), null, null, XmlValidationError.INCORRECT_ATTRIBUTE, state._type);
                     } else if (sla.isDefault() || sla.isFixed()) {
-                        _constraintEngine.attr(event, sla.getName(), sla.getType(), sla.getDefaultText());
+                        _constraintEngine.defaultAttr(event, sla);
 
                         // We don't need to validate attribute defaults because this is done at compiletime.
                         /*

@@ -24,6 +24,7 @@ import org.apache.xmlbeans.impl.xpath.XPathExecutionContext;
 import javax.xml.namespace.QName;
 import javax.xml.stream.Location;
 import java.util.*;
+import java.util.function.Supplier;
 
 /**
  * Identity constraint engine. Performs streaming validation of identity constraints.
@@ -81,6 +82,15 @@ public class IdentityConstraint {
     public void attr(Event e, QName name, SchemaType st, String value) {
         for (ConstraintState cs = _constraintStack; cs != null; cs = cs._next) {
             cs.attr(e, name, st, value);
+        }
+    }
+
+    /**
+     * An attribute absent from the instance but given a default or fixed value by the schema.
+     */
+    public void defaultAttr(Event e, SchemaLocalAttribute sla) {
+        for (ConstraintState cs = _constraintStack; cs != null; cs = cs._next) {
+            cs.defaultAttr(e, sla);
         }
     }
 
@@ -199,6 +209,15 @@ public class IdentityConstraint {
         }
     }
 
+    private static XmlObject defaultValue(SchemaLocalAttribute sla) {
+        try {
+            return sla.getDefaultValue();
+        } catch (IllegalArgumentException e) {
+            // Ignore these exceptions, as in newValue
+            return null;
+        }
+    }
+
     private static XmlObject newValue(SchemaType st, String value, Event event) {
         // QName and NOTATION values need the in-scope namespaces of the instance
         NamespaceContext.push(new NamespaceContext(event));
@@ -243,6 +262,10 @@ public class IdentityConstraint {
         abstract void endElement(Event e);
 
         abstract void attr(Event e, QName name, SchemaType st, String value);
+
+        void defaultAttr(Event e, SchemaLocalAttribute sla) {
+            attr(e, sla.getName(), sla.getType(), sla.getDefaultText());
+        }
 
         abstract void text(Event e, SchemaType st, String value, boolean emptyContent);
 
@@ -439,9 +462,19 @@ public class IdentityConstraint {
                 return;
             }
 
+            attr(e, name, () -> newValue(st, value, e));
+        }
+
+        @Override
+        void defaultAttr(Event e, SchemaLocalAttribute sla) {
+            // The default is resolved against the schema, so QName prefixes need not be bound in the instance
+            attr(e, sla.getName(), () -> defaultValue(sla));
+        }
+
+        private void attr(Event e, QName name, Supplier<XmlObject> value) {
             for (int i = 0; i < _contexts.length; i++) {
                 if (_contexts[i].attr(name)) {
-                    XmlObject o = newValue(st, value, e);
+                    XmlObject o = value.get();
 
                     // Ignore invalid values. Assume that validation catches these
                     if (o == null) {
