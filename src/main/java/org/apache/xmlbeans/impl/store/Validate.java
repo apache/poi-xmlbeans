@@ -113,7 +113,7 @@ final class Validate implements ValidatorListener.Event
         {
             do
             {
-                if (_cur.isNormalAttr() && !_cur.getUri().equals( Locale._xsi ))
+                if (_cur.isNormalAttr() && !isSpecialXsiAttr( _cur.getName() ))
                     _sink.nextEvent( ValidatorListener.ATTR, this );
             }
             while ( _cur.toNextAttr() );
@@ -122,6 +122,15 @@ final class Validate implements ValidatorListener.Event
         }
 
         _sink.nextEvent( ValidatorListener.ENDATTRS, this );
+    }
+
+    // Only xsi:type, xsi:nil, xsi:schemaLocation and xsi:noNamespaceSchemaLocation are exempt
+    // from attribute validation (cvc-complex-type.3.2); any other xsi attribute must be declared
+    private static boolean isSpecialXsiAttr ( QName name )
+    {
+        return
+            name.equals( Locale._xsiType ) || name.equals( Locale._xsiNil ) ||
+            name.equals( Locale._xsiLoc ) || name.equals( Locale._xsiNoLoc );
     }
 
     private void emitText ( )
