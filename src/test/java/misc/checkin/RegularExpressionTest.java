@@ -111,12 +111,32 @@ public class RegularExpressionTest {
     }
 
     @Test
+    void testWordEscapeDefaultsToLetterAndDigitTables() {
+        // without xmlbean.regex.strictword, \w keeps the XML 1.0 Letter and Digit tables
+        RegularExpression word = new RegularExpression("\\w+", "X");
+        RegularExpression notWord = new RegularExpression("\\W+", "X");
+        assertFalse(word.matches("+"));
+        assertTrue(notWord.matches("+"));
+        assertFalse(word.matches("\u017F"));
+        assertTrue(word.matches("a1"));
+    }
+
+    @Test
     void testWordEscapeFollowsSchemaDefinition() {
+        System.setProperty("xmlbean.regex.strictword", "true");
+        try {
+            checkStrictWordEscape();
+        } finally {
+            System.clearProperty("xmlbean.regex.strictword");
+        }
+    }
+
+    private static void checkStrictWordEscape() {
         // XML Schema defines \w as [#x0000-#x10FFFF]-[\p{P}\p{Z}\p{C}]: everything that
-        // is not punctuation, a separator or "other". The schema-mode parser built it
-        // from the XML 1.0 Letter and Digit tables instead, so symbols, marks,
-        // letter-like numbers and letters added after Unicode 2.0 were outside \w while
-        // \W and [^\w] matched them (the same bug as XERCESJ-1651 in the Xerces port)
+        // is not punctuation, a separator or "other". The schema-mode parser builds it
+        // from the XML 1.0 Letter and Digit tables by default, so symbols, marks,
+        // letter-like numbers and letters added after Unicode 2.0 are outside \w while
+        // \W and [^\w] match them (the same bug as XERCESJ-1651 in the Xerces port)
         RegularExpression word = new RegularExpression("\\w+", "X");
         RegularExpression notWord = new RegularExpression("\\W+", "X");
         RegularExpression negated = new RegularExpression("[^\\w]+", "X");
