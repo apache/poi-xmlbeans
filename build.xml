@@ -122,7 +122,7 @@
     <dependency prefix="xml-apis" artifact="xml-apis:xml-apis:1.4.01" usage="java8"/>
     <dependency prefix="log4j-api" artifact="org.apache.logging.log4j:log4j-api:2.26.1" usage="main"/>
     <dependency prefix="saxon" artifact="net.sf.saxon:Saxon-HE:13.0" usage="main"/>
-    <dependency prefix="ant" artifact="org.apache.ant:ant:1.10.17" usage="main"/>
+    <dependency prefix="ant" artifact="org.apache.ant:ant:1.10.18" usage="main"/>
     <dependency prefix="javaparser-core" artifact="com.github.javaparser:javaparser-core:3.28.2" usage="main"/>
     <dependency prefix="javaparser-symbol-solver-core" artifact="com.github.javaparser:javaparser-symbol-solver-core:3.28.2" usage="main"/>
 
@@ -142,8 +142,8 @@
     <dependency prefix="junit" artifact="junit:junit:4.13.2" usage="tests"/>
     <dependency prefix="log4j-core" artifact="org.apache.logging.log4j:log4j-core:2.26.1" usage="tests"/>
     <dependency prefix="xmlresolver" artifact="org.xmlresolver:xmlresolver:5.2.5" usage="main"/>
-    <dependency prefix="ant-junit" artifact="org.apache.ant:ant-junit:1.10.17" usage="tests"/>
-    <dependency prefix="ant-junit4" artifact="org.apache.ant:ant-junit4:1.10.17" usage="tests"/>
+    <dependency prefix="ant-junit" artifact="org.apache.ant:ant-junit:1.10.18" usage="tests"/>
+    <dependency prefix="ant-junit4" artifact="org.apache.ant:ant-junit4:1.10.18" usage="tests"/>
     <dependency prefix="hamcrest" artifact="org.hamcrest:hamcrest:3.0" usage="tests"/>
     <dependency prefix="xerces" artifact="xerces:xercesImpl:2.12.2" usage="tests"/>
 
