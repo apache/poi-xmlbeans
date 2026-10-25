@@ -250,7 +250,7 @@ public final class Validator
                 _localElement = _globalTypes.findElement(name);
                 elementField = _localElement;
 
-                if (elementField == null) {
+                if (elementField == null && event.getXsiType() == null) {
                     if (wildcardProcess == SchemaParticle.STRICT) {
                         // KHK: cvc-complex-type.2.4c? cvc-assess-elt.1.1.1.3.2?
                         emitFieldError(event, XmlErrorCodes.ASSESS_ELEM_SCHEMA_VALID$NOT_RESOLVED,
@@ -293,7 +293,9 @@ public final class Validator
                 }
             }
 
-            elementType = elementField.getType();
+            // without a declaration the element is assessed against its
+            // xsi:type alone (cvc-assess-elt.1.2)
+            elementType = elementField == null ? XmlObject.type : elementField.getType();
         }
 
         assert elementType != null;
