@@ -209,8 +209,8 @@ org.apache.ant:ant:1.10.17
 org.apache.ant:ant-launcher:1.10.17
 org.apache.logging.log4j:log4j-api:2.26.1
 org.jspecify:jspecify:1.0.0
-org.xmlresolver:xmlresolver:5.3.3
-org.xmlresolver:xmlresolver-data:5.3.3
+org.xmlresolver:xmlresolver:6.1.0
+org.xmlresolver:xmlresolver:6.1.0:data
 
 Apache Software License 2.0 and LGPL 3.0
 ----------------------------------------
@@ -226,4 +226,4 @@ org.javassist:javassist:3.30.2-GA
 Mozilla Public License 2.0
 --------------------------
 
-net.sf.saxon:Saxon-HE:13.0
+net.sf.saxon:Saxon-HE:13.1
