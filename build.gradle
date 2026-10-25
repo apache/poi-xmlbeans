@@ -70,7 +70,7 @@ ext {
     antVersion = '1.10.18'
     javaparserVersion = '3.28.2'
     log4jVersion = '2.26.1'
-    saxonVersion = '13.0'
+    saxonVersion = '13.1'
     androidSdkMinimum = '34'
     jdkVersion = (project.properties['jdkVersion'] ?: '17') as int
 }
@@ -138,7 +138,7 @@ dependencies {
 //    testImplementation "org.apache.ant:ant-junit4:${antVersion}"
     testImplementation 'org.hamcrest:hamcrest:3.0'
     testImplementation 'xerces:xercesImpl:2.12.2'
-    testRuntimeOnly 'org.xmlresolver:xmlresolver:5.2.5'
+    testRuntimeOnly 'org.xmlresolver:xmlresolver:6.1.0'
 
     // maven plugin dependencies
     implementation('org.apache.maven:maven-core:3.9.16')

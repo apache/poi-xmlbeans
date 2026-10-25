@@ -21,7 +21,7 @@ module org.apache.xmlbeans {
     requires org.apache.logging.log4j;
     requires static ant;
     requires static com.github.javaparser.core;
-    requires static Saxon.HE;
+    requires static net.sf.saxon;
 
     exports org.apache.xmlbeans;
     exports org.apache.xmlbeans.soap;

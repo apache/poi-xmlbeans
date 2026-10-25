@@ -896,16 +896,11 @@ public class XQuerySchemaTypeSystem extends SchemaTypeLoaderBase implements
                 break;
 
             case SchemaType.BTC_IDREFS:
-                facets = FACETS_BUILTIN_LIST;
-                fixedf = FIXED_FACETS_NONE;
-                wsr = SchemaType.WS_COLLAPSE;
-                break;
-
             case SchemaType.BTC_ENTITIES:
             case SchemaType.BTC_NMTOKENS:
                 facets = FACETS_BUILTIN_LIST;
                 fixedf = FIXED_FACETS_NONE;
-                wsr = SchemaType.WS_UNSPECIFIED;
+                wsr = SchemaType.WS_COLLAPSE;
                 break;
 
             case BTC_DAY_TIME_DURATION:
