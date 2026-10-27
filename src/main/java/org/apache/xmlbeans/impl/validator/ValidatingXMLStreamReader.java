@@ -570,7 +570,9 @@ public class ValidatingXMLStreamReader
                     break;
 
                 initValidator(_contentType);
-                _validator.nextEvent(Validator.BEGIN, _elemEvent);
+                // the root BEGIN is for _contentType itself; the xsi:type and xsi:nil
+                // of the current element belong to the element BEGIN below
+                _validator.nextEvent(Validator.BEGIN, _simpleEvent);
             }
 
             _validator.nextEvent(Validator.BEGIN, _elemEvent);
