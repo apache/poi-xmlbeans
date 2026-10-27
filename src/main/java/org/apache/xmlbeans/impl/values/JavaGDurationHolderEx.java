@@ -19,6 +19,8 @@ import org.apache.xmlbeans.*;
 import org.apache.xmlbeans.impl.common.QNameHelper;
 import org.apache.xmlbeans.impl.common.ValidationContext;
 
+import java.math.BigDecimal;
+
 public abstract class JavaGDurationHolderEx extends XmlObjectBase {
     public JavaGDurationHolderEx(SchemaType type, boolean complex) {
         _schemaType = type;
@@ -152,11 +154,21 @@ public abstract class JavaGDurationHolderEx extends XmlObjectBase {
     }
 
     protected boolean equal_to(XmlObject d) {
-        return _value.equals(((XmlObjectBase) d).getGDurationValue());
+        // equal in the value space, so P1D equals PT24H
+        return _value.compareToGDuration(((XmlObjectBase) d).getGDurationValue()) == 0;
     }
 
     protected int value_hash_code() {
-        return _value.hashCode();
+        // hash the month and second totals that equal_to compares
+        long months = (long) _value.getYear() * 12 + _value.getMonth();
+        BigDecimal seconds = BigDecimal.valueOf(
+            (((long) _value.getDay() * 24 + _value.getHour()) * 60 + _value.getMinute()) * 60 + _value.getSecond())
+            .add(_value.getFraction()).stripTrailingZeros();
+        if (_value.getSign() < 0) {
+            months = -months;
+            seconds = seconds.negate();
+        }
+        return Long.hashCode(months) * 31 + seconds.hashCode();
     }
 
     protected void validate_simpleval(String lexical, ValidationContext ctx) {
