@@ -1093,17 +1093,11 @@ public final class Locale
                 return processWhiteSpaceRule(s, wsr);
             }
 
-            boolean lastWasWhite = false;
-
             for (int i = 1; i < l; i++) {
-                ch = s.charAt(i);
-                boolean isWhite = CharUtil.isWhiteSpace(ch);
-
-                if (isWhite && (lastWasWhite || ch != ' ')) {
+                if ((ch = s.charAt(i)) == '\n' || ch == '\r' || ch == '\t' ||
+                    (ch == ' ' && s.charAt(i - 1) == ' ')) {
                     return processWhiteSpaceRule(s, wsr);
                 }
-
-                lastWasWhite = isWhite;
             }
         }
 
