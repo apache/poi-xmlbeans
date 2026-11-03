@@ -37,7 +37,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 public abstract class SchemaTypeLoaderBase implements SchemaTypeLoader {
-    private static final String USER_AGENT = "XMLBeans/" + XmlBeans.getVersion() + " (" + XmlBeans.getTitle() + ")";
+    /**
+     * The User-Agent header sent when a schema is fetched over HTTP. It is built where it is used and not in a static
+     * field: XmlBeans' own static initialization needs this class (XmlBeans.NO_TYPE comes from BuiltinSchemaTypeSystem,
+     * a subclass), so reading XmlBeans while this class initializes closed a ring between the two class
+     * initializations. Two threads entering it from opposite ends at the same time - one through XmlObject.Factory,
+     * one through a generated type - waited for each other forever (XMLBEANS-616).
+     */
+    private static String userAgent() {
+        return "XMLBeans/" + XmlBeans.getVersion() + " (" + XmlBeans.getTitle() + ")";
+    }
 
     private static String doCompilePath(String pathExpr, XmlOptions options) {
         return XPathFactory.compilePath(pathExpr, options);
@@ -182,7 +191,7 @@ public abstract class SchemaTypeLoaderBase implements SchemaTypeLoader {
 
         do {
             conn = url.openConnection();
-            conn.addRequestProperty("User-Agent", USER_AGENT);
+            conn.addRequestProperty("User-Agent", userAgent());
             conn.addRequestProperty("Accept", "application/xml, text/xml, */*");
             if (conn instanceof HttpURLConnection httpcon) {
                 int code = httpcon.getResponseCode();
