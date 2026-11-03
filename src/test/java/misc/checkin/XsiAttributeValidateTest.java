@@ -21,6 +21,7 @@ import org.apache.xmlbeans.XmlError;
 import org.apache.xmlbeans.XmlObject;
 import org.apache.xmlbeans.XmlOptions;
 import org.apache.xmlbeans.impl.xb.xsdschema.SchemaDocument;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -35,16 +36,21 @@ public class XsiAttributeValidateTest {
     private static final String XSD =
         "<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema' " +
         "xmlns:t='urn:t' targetNamespace='urn:t'>" +
-        "  <xs:element name='root'>" +
-        "    <xs:complexType><xs:attribute name='a' type='xs:int'/></xs:complexType>" +
-        "  </xs:element>" +
+        "  <xs:complexType name='rootType'><xs:attribute name='a' type='xs:int'/></xs:complexType>" +
+        "  <xs:element name='root' type='t:rootType' nillable='true'/>" +
         "  <xs:element name='open'>" +
         "    <xs:complexType><xs:anyAttribute processContents='skip'/></xs:complexType>" +
         "  </xs:element>" +
         "</xs:schema>";
 
+    private static SchemaTypeLoader loader;
+
+    @BeforeAll
+    static void compileSchema() throws Exception {
+        loader = XmlBeans.loadXsd(new XmlObject[]{SchemaDocument.Factory.parse(XSD)});
+    }
+
     private static boolean validate(String instance, List<XmlError> errors) throws Exception {
-        SchemaTypeLoader loader = XmlBeans.loadXsd(new XmlObject[]{SchemaDocument.Factory.parse(XSD)});
         XmlObject doc = loader.parse(instance, null, null);
         return doc.validate(new XmlOptions().setErrorListener(errors));
     }
@@ -64,7 +70,8 @@ public class XsiAttributeValidateTest {
         List<XmlError> errors = new ArrayList<>();
         assertTrue(validate(
             "<t:root xmlns:t='urn:t' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' " +
-            "xsi:schemaLocation='urn:t t.xsd' xsi:noNamespaceSchemaLocation='n.xsd' a='1'/>",
+            "xsi:schemaLocation='urn:t t.xsd' xsi:noNamespaceSchemaLocation='n.xsd' " +
+            "xsi:type='t:rootType' xsi:nil='true' a='1'/>",
             errors), errors.toString());
     }
 
