@@ -1,0 +1,578 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2004 The Apache Software Foundation
+
+     Licensed under the Apache License, Version 2.0 (the "License");
+     you may not use this file except in compliance with the License.
+     You may obtain a copy of the License at
+
+         http://www.apache.org/licenses/LICENSE-2.0
+
+     Unless required by applicable law or agreed to in writing, software
+     distributed under the License is distributed on an "AS IS" BASIS,
+     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     See the License for the specific language governing permissions and
+     limitations under the License. -->
+<schema xmlns="http://www.w3.org/2001/XMLSchema"
+        xmlns:etl="http://labkey.org/etl/xml"
+        xmlns:cv="http://labkey.org/data/xml/queryCustomView"
+        targetNamespace="http://labkey.org/etl/xml"
+        elementFormDefault="qualified"
+        attributeFormDefault="unqualified">
+
+    <import namespace="http://labkey.org/data/xml/queryCustomView" schemaLocation="../schemasCustomView/queryCustomView.xsd"/>
+
+    <element name="etl" type="etl:EtlType"/>
+
+
+    <complexType name="EtlType">
+        <all>
+            <element name="name" type="string" maxOccurs="1"/>
+            <element name="description" type="string" maxOccurs="1" minOccurs="0"/>
+            <element name="transforms" type="etl:TransformsType" maxOccurs="1"/>
+            <element name="schedule" type="etl:ScheduleType" maxOccurs="1" minOccurs="0"/>
+            <element name="incrementalFilter" type="etl:FilterType" minOccurs="0" maxOccurs="1"/>
+            <element name="parameters" type="etl:ParametersType" minOccurs="0" maxOccurs="1"/>
+            <element name="pipelineParameters" type="etl:PipelineParametersType" minOccurs="0" maxOccurs="1"/>
+            <element name="constants" type="etl:ConstantsType" minOccurs="0" maxOccurs="1"/>
+        </all>
+        <attribute name="loadReferencedFiles" type="boolean" default="false"/>
+        <attribute name="standalone" type="boolean" default="true">
+            <annotation>
+                <documentation>ETL can be run on its own, rather than a subcomponent that can only be queued from another ETL.</documentation>
+            </annotation>
+        </attribute>
+        <attribute name="siteScope" type="boolean" default="false">
+            <annotation>
+                <documentation>ETL can run at a site level scope, not just in a container.</documentation>
+            </annotation>
+        </attribute>
+        <attribute name="allowMultipleQueuing" type="boolean" default="false">
+            <annotation>
+                <documentation>By default, if a job for the etl is already pending (waiting), we block adding another instance of the etl to the job queue. Set this flag to override and allow multiple instances in the queue.</documentation>
+            </annotation>
+        </attribute>
+        <attribute name="transactSourceSchema" type="string">
+        <annotation>
+            <documentation>Optional. Experimental, Postgres datasources only. Causes a multi-step ETL to wrap an entire run of the ETL in a single transaction
+                on the source datasource containing the schema specified. This transaction will be isolation level REPEATABLE READ, guaranteeing consistent
+                state of source data throughout the transaction. This prevents phantom reads of source data which has been inserted/updated since
+                the ETL started. Only meaningful if the source schemas for every step in the ETL are all from the same datasource. Individual steps
+                will not have their own transaction boundaries.
+                The intended use case is for a source datasource external to LabKey Server.
+                This setting is independent of the optional transactDestinationSchema setting. If both are specified, and the two schemas are from
+                the same datasource, the ETL will be wrapped in a single REPEATABLE READ transaction. This scenario is only supported if
+                tha single datasource is Postgres, and is not recommended.
+            </documentation>
+        </annotation>
+        </attribute>
+        <attribute name="transactDestinationSchema" type="string">
+            <annotation>
+                <documentation>Optional. Very experimental, use with caution. Causes a multi-step ETL to wrap an entire run of the ETL in a single transaction
+                    on the destination datasource containing the schema specified. This transaction will only be committed upon successful completion
+                    of the ETL run; any error will cause a full rollback of every step up to that point. Only meaningful if the destination schemas for every
+                    step in the ETL are all from the same datasource. Individual steps will not have their own transaction boundaries, nor will setting
+                    a batchSize have any effect. Using this setting will very likely cause lock contention problems on the destination queries,
+                    especially on SQL Server.
+                    This setting is independent of the optional transactSourceSchema setting. If both are specified, and the two schemas are from
+                    the same datasource, the ETL run will be wrapped in a single REPEATABLE READ transaction. This scenario is only supported if
+                    tha single datasource is Postgres, and is not recommended.
+                </documentation>
+            </annotation>
+        </attribute>
+    </complexType>
+
+    <complexType name="SourceColumnsType">
+        <sequence minOccurs="1" maxOccurs="unbounded">
+            <element name="column" type="string"/>
+        </sequence>
+    </complexType>
+
+    <complexType name="SourceFiltersType">
+        <sequence minOccurs="1" maxOccurs="unbounded">
+            <element name="sourceFilter" type="cv:filterType"/>
+        </sequence>
+    </complexType>
+
+    <complexType name="SourceObjectType">
+        <all>
+            <element name="sourceColumns" type="etl:SourceColumnsType" minOccurs="0" maxOccurs="1"/>
+            <element name="sourceFilters" type="etl:SourceFiltersType" minOccurs="0" maxOccurs="1"/>
+        </all>
+        <attribute name="sourceContainerPath" type="string" use="optional">
+            <annotation>
+                <documentation>Container path for doing cross-container ETLs. If not entered, defaults to the container where the ETL is running.</documentation>
+            </annotation>
+        </attribute>
+        <attribute name="schemaName" type="string" use="required"/>
+        <attribute name="queryName" type="string" use="required"/>
+        <attribute name="timestampColumnName" type="string" use="optional">
+            <annotation>
+                <documentation>Override the column name set on a ModifiedSinceFilter incremental filter.</documentation>
+            </annotation>
+        </attribute>
+        <attribute name="runColumnName" type="string" use="optional">
+            <annotation>
+                <documentation>Override the column name set on a RunFilter incremental filter.</documentation>
+            </annotation>
+        </attribute>
+        <attribute name="remoteSource" type="string" use="optional"/>
+        <attribute name="sourceTimeout" type="integer" use="optional"/>
+        <attribute name="useTransaction" type="boolean" use="optional" default="true">
+            <annotation>
+                <documentation>Wrap selecting from source query in a transaction. Only used for simple query transform types.</documentation>
+            </annotation>
+        </attribute>
+        <attribute name="containerFilter" type="cv:containerFilterType" use="optional">
+            <annotation>
+                <documentation>Specify the type of container filter to use on the source query.</documentation>
+            </annotation>
+        </attribute>
+    </complexType>
+
+    <complexType name="TargetObjectType">
+        <annotation>
+            <documentation>Targets will be of type 'query' (the default), or 'file'. For query, the schemaName and queryName attributes are required. For file, the fileBaseName and fileExtension attributes are required.</documentation>
+        </annotation>
+        <all>
+            <element name="alternateKeys" type="etl:AlternateKeysType" minOccurs="0" maxOccurs="1"/>
+            <element name="columnTransforms" type="etl:ColumnTransformsType" minOccurs="0" maxOccurs="1"/>
+            <element name="constants" type="etl:ConstantsType" minOccurs="0" maxOccurs="1"/>
+        </all>
+        <attribute name="schemaName" type="string" use="optional"/>
+        <attribute name="queryName" type="string" use="optional"/>
+        <attribute name="bulkLoad" type="boolean" use="optional">
+            <annotation>
+                <documentation>Bulk loads minimize the logging for auditing purposes and other overhead.</documentation>
+            </annotation>
+        </attribute>
+        <attribute name="dir" type="string" use="optional"/>
+        <attribute name="fileBaseName" type="string" use="optional">
+            <annotation>
+                <documentation>The base name to use for an output target file. Special substitutions:
+                    '${TransformRunId}' will be substituted with the transformRunId.
+                    '${Timestamp}' will be substituted with the timestamp at file creation.</documentation>
+            </annotation>
+        </attribute>
+        <attribute name="fileExtension" type="string" use="optional">
+            <annotation>
+                <documentation>Optional (required for pipeline usage), the extension for the output target file. A leading dot is optional; there will always be a dot separator between the file basename and extension</documentation>
+            </annotation>
+        </attribute>
+        <attribute name="columnDelimiter" type="string" use="optional"/>
+        <attribute name="quote" type="string" use="optional">
+            <annotation>
+                <documentation>Character to qualify text when a field contains the column or row delimiter</documentation>
+            </annotation>
+        </attribute>
+        <attribute name="rowDelimiter" type="string" use="optional"/>
+        <attribute name="targetOption" type="etl:TargetOptionType" use="optional" default="append"/>
+        <attribute name="type" type="etl:TargetTypeType" use="optional" default="query"/>
+        <attribute name="useTransaction" type="boolean" use="optional" default="true">
+            <annotation>
+                <documentation>Wrap writing to target query in a transaction. Not used when target is a file.</documentation>
+            </annotation>
+        </attribute>
+        <attribute name="batchSize" type="nonNegativeInteger" use="optional" default="0">
+            <annotation>
+                <documentation>
+                    Formerly called "transactionSize". For query targets, incrementally commit target transaction every n rows instead of in a single wrapping transaction.
+                    For file targets, instead of writing a single file, create a new file every n rows. Each will be the fileBaseName + "-1", "-2", etc, + fileExtension</documentation>
+            </annotation>
+        </attribute>
+        <attribute name="batchColumn" type="string" use="optional">
+            <annotation>
+                <documentation>If specified, rather than count individual rows for the batchSize, use this as a sentinel field, and only increment the count of a current batch when the value in this field changes.
+                If the name of the relevant column is being mapped via columnTransforms, use the target name, not the source name.
+                </documentation>
+            </annotation>
+        </attribute>
+    </complexType>
+
+    <simpleType name="TargetOptionType">
+        <restriction base="string">
+            <enumeration value="merge"/>
+            <enumeration value="append"/>
+            <enumeration value="truncate"/>
+        </restriction>
+    </simpleType>
+
+    <simpleType name="TargetTypeType">
+        <restriction base="string">
+            <enumeration value="query"/>
+            <enumeration value="file">
+                <annotation>
+                    <documentation>The target will be a file of basename and extension specified by fileBaseName and fileExtension.
+                         By default the field and row separators will be for a tsv file, but this can be overridden with the optional columnDelimiter and rowDelimiter attributes.
+                        For ETLs that use the target file as input to a pipeline command tasks, it is possible to skip running the command task for a 0 row file. Use the "etlOutputHadRows"
+                        parameter in the pipeline configuration. See nlpContext.xml for an example of this.
+                    </documentation>
+                </annotation>
+            </enumeration>
+        </restriction>
+    </simpleType>
+
+    <complexType name="SchemaProcedureType">
+        <sequence minOccurs="0" maxOccurs="unbounded">
+            <element name="parameter" type="etl:ProcedureParameterType"/>
+        </sequence>
+        <attribute name="schemaName" type="string" use="required"/>
+        <attribute name="procedureName" type="string" use="required"/>
+        <attribute name="useTransaction" type="boolean" use="optional" default="true">
+            <annotation>
+                <documentation>Wrap the call of the procedure in a transaction.</documentation>
+            </annotation>
+        </attribute>
+    </complexType>
+
+    <complexType name="ProcedureParameterType">
+        <attribute name="name" type="string" use="required"/>
+        <attribute name="value" type="string" use="optional"/>
+        <attribute name="override" type="boolean" use="optional" default="false"/>
+        <attribute name="scope" type="etl:ProcedureParameterScopeType" use="optional" default="local"/>
+        <attribute name="noWorkValue" type="string" use="optional">
+            <annotation>
+                <documentation>When present, this procedure will be used to check if there is work for the job to do. If the output value
+                of this parameter is equal to the noWorkValue, there is no work for the job to do.
+                This can either be an actual value ("4"), or there is a substitution syntax to indicate comparison should be against the
+                input value of a certain parameter. E.g., a parameter name="batchId" noWorkValue="${batchId}" will indicate there
+                    is no work for the job if the output batchId is the same as the one saved from the previous run.
+                </documentation>
+            </annotation>
+        </attribute>
+    </complexType>
+
+    <simpleType name="ProcedureParameterScopeType">
+        <annotation>
+            <documentation>These match two of the scopes defined in the Variable Map persisted in the TransformConfiguration.TransformState field.
+              (We don't support the notion of a 'parent' scope here.) Globally scoped parameters allow sharing/passing of context across multiple stored procedure steps.
+            </documentation>
+        </annotation>
+        <restriction base="string">
+            <enumeration value="local"/>
+            <enumeration value="global"/>
+        </restriction>
+    </simpleType>
+
+    <complexType name="TransformsType">
+        <sequence minOccurs="1" maxOccurs="unbounded">
+            <element name="transform" type="etl:TransformType"/>
+        </sequence>
+    </complexType>
+
+    <complexType name="TransformType">
+      <all>
+        <!-- <element name="properties" type="etl:PropertiesType" minOccurs="0" maxOccurs="1"/> -->
+        <element name="description" type="string" minOccurs="0" />
+        <element name="source" type="etl:SourceObjectType" minOccurs="0"/>
+        <element name="destination" type="etl:TargetObjectType" minOccurs="0"/>
+        <element name="procedure" type="etl:SchemaProcedureType" minOccurs="0"/>
+        <element name="taskref" type="etl:TaskRefType" maxOccurs="1" minOccurs="0"/>
+      </all>
+      <attribute name="id" type="string" use="required"/>
+        <attribute name="type" type="string" default="SimpleQueryTransformStep">
+          <annotation>
+            <documentation>
+                Use 'StoredProcedure' when handling the transform task wtih a stored procedure.
+                Use 'ExternalPipelineTask' (in conjunction with externalTaskId) when handling the transform task with an XML-defined pipeline task.
+                Use 'TaskrefTransformStep' (in conjunction with a taskRef element) to queue another ETL to run.
+            </documentation>
+          </annotation>
+        </attribute>
+        <attribute name="externalTaskId" type="string">
+          <annotation>
+            <documentation>
+                The command task (wrapped as a pipeline task) that handles the transform.
+                E.g., 'org.labkey.api.pipeline.cmd.CommandTask:myEngineCommand'
+            </documentation>
+          </annotation>
+        </attribute>
+        <attribute name="parentPipelineTaskId" type="string">
+          <annotation>
+            <documentation>
+                If an externalTaskId command task is defined, settings from this pipeline
+                (to date, workflow process key) will be applied to the pipeline wrapping the externalTask
+                E.g., 'org.labkey.api.pipeline.file.FileAnalysisTaskPipeline:myPipelineName'
+            </documentation>
+          </annotation>
+        </attribute>
+        <attribute name="saveState" type="boolean" default="false">
+            <annotation>
+                <documentation>
+                    Persist the job state to the database after this step (in addition to at the end of a successfully complete job).
+                    Use with extreme caution; if a later step causes an error in the job, this will still be the assumed state for the next run.
+                </documentation>
+            </annotation>
+        </attribute>
+    </complexType>
+
+<!-- <complexType name="PropertiesType">
+        <all>
+            <element name="property" type="string" minOccurs="0"/>
+        </all>
+    </complexType>
+
+    <complexType name="PropertyType">
+        <attribute name="name" type="string" use="required"/>
+        <attribute name="value" type="string" use="required"/>
+    </complexType>
+-->
+
+    <complexType name="ScheduleType">
+        <all>
+            <element name="poll" type="etl:PollType" minOccurs="0"/>
+            <element name="cron" type="etl:CronType" minOccurs="0"/>
+        </all>
+    </complexType>
+
+
+    <complexType name="PollType">
+        <attribute name="interval" type="string" use="required">
+            <annotation>
+                <documentation>
+                    Run the ETL at the specified interval, for example, 2h to run every two hours.
+                    Valid intervals are:
+                    y: Years
+                    m: Months, if day or hour is specified
+                    d: Days
+                    h: Hours
+                    m: Minutes, if no day or hour is specified
+                    s: Seconds
+                </documentation>
+            </annotation>
+        </attribute>
+    </complexType>
+
+
+    <complexType name="CronType">
+        <attribute name="expression" type="string" use="required"/>
+    </complexType>
+
+    <complexType name="DeletedRowsSourceObjectType">
+    <complexContent>
+            <extension base="etl:SourceObjectType">
+                <attribute name="deletedSourceKeyColumnName" type="string" use="optional">
+                    <annotation>
+                        <documentation>
+                            The column in the deletedRowsSource which holds the key values to delete in the target. If not specified, the PK values of the delete query is used.
+                        </documentation>
+                    </annotation>
+                </attribute>
+                <attribute name="targetKeyColumnName" type="string" use="optional">
+                    <annotation>
+                        <documentation>
+                            The column in the target query corresponding to the deleted key values. If not specified, we assume the PK of the target query.&lt;br/&gt;
+                            If a non-PK column is specified, the delete values will be used as lookups to map back to the corresponding PK values in the target.
+                        </documentation>
+                    </annotation>
+                </attribute>
+            </extension>
+        </complexContent>
+    </complexType>
+
+    <complexType name="FilterType">
+        <all>
+            <element name="deletedRowsSource" type="etl:DeletedRowsSourceObjectType" minOccurs="0">
+                <annotation>
+                    <documentation>Defines a query with a list of rows to delete from the target in this incremental run.&lt;br/&gt;
+                        Timestamp or run filter values against the delete rows source are tracked independently from the values in the&lt;br/&gt;
+                        original source query. I.e., there could be no new records in the source query, but new records in the delete rows source&lt;br/&gt;
+                        will still be found and deleted from the target.
+                    </documentation>
+                </annotation>
+            </element>
+        </all>
+        <!-- <all>
+            <element name="properties" type="etl:PropertiesType" minOccurs="0"/>
+        </all> -->
+
+        <attribute name="className" type="etl:FilterClassType" use="optional"/>
+
+        <!-- TODO: temp removing this attribute until it is implemented. Intended to be an in-app configurable override to the filter strategy
+        <attribute name="selectAll" type="boolean" use="optional"/>
+        -->
+
+        <!-- org.labkey.di.filters.ModifiedSinceFilterStrategy -->
+        <attribute name="timestampColumnName" type="string" use="optional"/>
+
+        <!-- org.labkey.di.filters.RunFilterStrategy -->
+        <attribute name="runTableContainerPath" type="string" use="optional">
+            <annotation>
+                <documentation>Container path for doing cross-container run filter strategy. If not specified, defaults to the container where the ETL is running.</documentation>
+            </annotation>
+        </attribute>
+        <attribute name="runTableSchema" type="string" use="optional"/>
+        <attribute name="runTable" type="string" use="optional"/>
+        <attribute name="pkColumnName" type="string" use="optional"/>
+        <attribute name="fkColumnName" type="string" use="optional"/>
+    </complexType>
+
+    <simpleType name="FilterClassType">
+        <restriction base="string">
+            <enumeration value="RunFilterStrategy"/>
+            <enumeration value="ModifiedSinceFilterStrategy"/>
+            <enumeration value="SelectAllFilterStrategy"/>
+        </restriction>
+    </simpleType>
+
+    <complexType name="ParametersType">
+        <annotation>
+            <documentation>
+                Intended for use when the ETL's source query is a parameterized SQL query.
+                Parameter values placed here are passed into the SQL query.
+                For details see
+                https://www.labkey.org/Documentation/wiki-page.view?name=paramsql
+                and
+                https://www.labkey.org/Documentation/wiki-page.view?name=etlSamples#param
+            </documentation>
+        </annotation>
+        <sequence minOccurs="0" maxOccurs="unbounded">
+            <element name="parameter" type="etl:ParameterType"/>
+        </sequence>
+    </complexType>
+
+    <complexType name="ParameterType">
+        <attribute name="name" type="string" use="required" />
+        <attribute name="value" type="string" use="optional" />
+        <attribute name="type" type="etl:SqlType" use="required" />
+    </complexType>
+
+    <simpleType name="SqlType">
+        <annotation>
+            <documentation>
+                Enumerated list of java.sql.types. Mirrors the enum defined in java JdbcType.
+            </documentation>
+        </annotation>
+        <restriction base="string">
+            <enumeration value="BIGINT"/>
+            <enumeration value="bigint"/>
+            <enumeration value="BINARY"/>
+            <enumeration value="binary"/>
+            <enumeration value="BOOLEAN"/>
+            <enumeration value="boolean"/>
+            <enumeration value="CHAR"/>
+            <enumeration value="char"/>
+            <enumeration value="DECIMAL"/>
+            <enumeration value="decimal"/>
+            <enumeration value="DOUBLE"/>
+            <enumeration value="double"/>
+            <enumeration value="INTEGER"/>
+            <enumeration value="integer"/>
+            <enumeration value="LONGVARBINARY"/>
+            <enumeration value="longvarbinary"/>
+            <enumeration value="LONGVARCHAR"/>
+            <enumeration value="longvarchar"/>
+            <enumeration value="REAL"/>
+            <enumeration value="real"/>
+            <enumeration value="SMALLINT"/>
+            <enumeration value="smallint"/>
+            <enumeration value="DATE"/>
+            <enumeration value="date"/>
+            <enumeration value="TIME"/>
+            <enumeration value="time"/>
+            <enumeration value="TIMESTAMP"/>
+            <enumeration value="timestamp"/>
+            <enumeration value="TINYINT"/>
+            <enumeration value="tinyint"/>
+            <enumeration value="VARBINARY"/>
+            <enumeration value="varbinary"/>
+            <enumeration value="VARCHAR"/>
+            <enumeration value="varchar"/>
+            <enumeration value="GUID"/>
+            <enumeration value="guid"/>
+            <enumeration value="NULL"/>
+            <enumeration value="null"/>
+            <enumeration value="OTHER"/>
+            <enumeration value="other"/>
+        </restriction>
+    </simpleType>
+
+    <complexType name="PipelineParametersType">
+        <sequence minOccurs="1" maxOccurs="unbounded">
+            <element name="parameter" type="etl:PipelineParameterType"/>
+        </sequence>
+    </complexType>
+
+    <complexType name="PipelineParameterType">
+        <annotation>
+            <documentation>
+                Intended for use when an ETL invokes file analysis pipeline command tasks.
+                Will be passed as parameter overrides into the protocol.
+            </documentation>
+        </annotation>
+        <attribute name="name" type="string" use="required" />
+        <attribute name="value" type="string" use="required" />
+    </complexType>
+
+    <complexType name="TaskRefType">
+        <sequence>
+            <element name="settings" type="etl:SettingsType" minOccurs="0" maxOccurs="1"/>
+        </sequence>
+        <attribute name="ref" type="string" use="required"/>
+    </complexType>
+
+    <complexType name="SettingsType">
+        <sequence>
+            <element name="setting" type="etl:SettingType" minOccurs="0" maxOccurs="unbounded"/>
+        </sequence>
+    </complexType>
+
+    <complexType name="SettingType">
+        <attribute name="name" type="string" use="required"/>
+        <attribute name="value" type="string" use="required"/>
+    </complexType>
+
+    <complexType name="AlternateKeysType">
+        <annotation>
+            <documentation>
+                Defines a set of alternate match keys to use for merge ETLs instead of the primary key of the target.
+            </documentation>
+        </annotation>
+        <sequence>
+            <element name="column" type="etl:AlternateKeyType" minOccurs="0" maxOccurs="unbounded"/>
+        </sequence>
+    </complexType>
+
+    <complexType name="AlternateKeyType">
+        <attribute name="name" type="string" use="required"/>
+    </complexType>
+
+    <complexType name="ColumnTransformsType">
+        <sequence minOccurs="0" maxOccurs="unbounded">
+            <element name="column" type="etl:ColumnTransformType"/>
+        </sequence>
+    </complexType>
+
+    <complexType name="ColumnTransformType">
+        <annotation>
+            <documentation>Defines a java class to use to transform a column value.
+                This works for both query and file targets.
+                The implementation of the transform class declares if "source" and/or "target"
+                column names are required. Default implementation requires only source, and the
+                same name is used for the target column.
+                If no transformClass is specified, a simple in-flight column name mapping is
+                performed between the source and target. In this case both source and target are required.
+            </documentation>
+        </annotation>
+        <attribute name="source" type="string" />
+        <attribute name="target" type="string" />
+        <attribute name="transformClass" type="string"/>
+    </complexType>
+
+    <complexType name="ConstantsType">
+        <annotation>
+            <documentation>
+                A list of fields with constant values that will be added to the source fields.
+                If there is a column with that name in the source query, the value provided here will
+                be an override.
+                These can be defined at the global etl level, applying to all steps, or at the individual step
+                (destination) level. If the same column is specified both globally and in an individual step,
+                that step will receive the value defined at the step level.
+                The form of these are the same as for source query parameters. See
+                https://www.labkey.org/Documentation/wiki-page.view?name=etlSamples#param
+            </documentation>
+        </annotation>
+        <sequence minOccurs="1" maxOccurs="unbounded">
+            <element name="column" type="etl:ParameterType"/>
+        </sequence>
+    </complexType>
+</schema>
