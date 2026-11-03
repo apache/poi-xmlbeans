@@ -134,6 +134,13 @@ public abstract class JavaDecimalHolderEx extends JavaDecimalHolder {
                 }
 
                 len -= insignificantTrailingZeros;
+
+                // leading zeros of the fraction count too: 0.05 is 5 x 10^-2,
+                // and the 2 must not exceed totalDigits either
+                int fractionDigits = vScale - insignificantTrailingZeros;
+                if (v.signum() != 0 && fractionDigits > len) {
+                    len = fractionDigits;
+                }
             }
 
             if (len > tdf) {
