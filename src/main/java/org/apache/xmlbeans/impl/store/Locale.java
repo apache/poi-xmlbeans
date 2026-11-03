@@ -1096,9 +1096,10 @@ public final class Locale
             boolean lastWasWhite = false;
 
             for (int i = 1; i < l; i++) {
-                boolean isWhite = CharUtil.isWhiteSpace(s.charAt(i));
+                ch = s.charAt(i);
+                boolean isWhite = CharUtil.isWhiteSpace(ch);
 
-                if (isWhite && lastWasWhite) {
+                if (isWhite && (lastWasWhite || ch != ' ')) {
                     return processWhiteSpaceRule(s, wsr);
                 }
 
