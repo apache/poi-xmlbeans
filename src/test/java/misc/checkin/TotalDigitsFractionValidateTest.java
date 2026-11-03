@@ -16,20 +16,25 @@
 package misc.checkin;
 
 import org.apache.xmlbeans.SchemaTypeLoader;
+import org.apache.xmlbeans.SimpleValue;
 import org.apache.xmlbeans.XmlBeans;
 import org.apache.xmlbeans.XmlError;
 import org.apache.xmlbeans.XmlObject;
 import org.apache.xmlbeans.XmlOptions;
+import org.apache.xmlbeans.impl.values.XmlValueOutOfRangeException;
 import org.apache.xmlbeans.impl.xb.xsdschema.SchemaDocument;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import javax.xml.namespace.QName;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class TotalDigitsFractionValidateTest {
 
@@ -89,5 +94,22 @@ public class TotalDigitsFractionValidateTest {
         assertValid("-0.0");
         assertInvalid("1234");
         assertInvalid("1.234");
+    }
+
+    private static void setValue(BigDecimal value) throws Exception {
+        XmlObject doc = loader.parse("<t:d xmlns:t='urn:t'>1</t:d>", null,
+            new XmlOptions().setValidateOnSet());
+        SimpleValue d = (SimpleValue) doc.selectChildren(new QName("urn:t", "d"))[0];
+        d.setBigDecimalValue(value);
+    }
+
+    @Test
+    void negativeScaleCountsIntegerZeros() throws Exception {
+        // 1E+5 has unscaled value 1 and scale -5, but is 100000: six digits
+        assertThrows(XmlValueOutOfRangeException.class, () -> setValue(new BigDecimal("1E+5")));
+        assertThrows(XmlValueOutOfRangeException.class, () -> setValue(new BigDecimal("-12E+2")));
+        setValue(new BigDecimal("1E+2"));
+        setValue(new BigDecimal("12E+1"));
+        setValue(new BigDecimal("0E+5"));
     }
 }

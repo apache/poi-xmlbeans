@@ -141,6 +141,12 @@ public abstract class JavaDecimalHolderEx extends JavaDecimalHolder {
                 if (v.signum() != 0 && fractionDigits > len) {
                     len = fractionDigits;
                 }
+
+                // a negative scale stands for trailing zeros of the integer part:
+                // 1E+5 has unscaled value 1 but is the six digit 100000
+                if (v.signum() != 0 && vScale < 0) {
+                    len -= vScale;
+                }
             }
 
             if (len > tdf) {
