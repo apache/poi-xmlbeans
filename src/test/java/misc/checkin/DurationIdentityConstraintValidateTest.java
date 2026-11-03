@@ -109,4 +109,23 @@ public class DurationIdentityConstraintValidateTest {
         assertEquals(a.valueHashCode(), b.valueHashCode());
         assertFalse(a.valueEquals(XmlDuration.Factory.newValue("PT26H")));
     }
+
+    @Test
+    void fourHundredYearCycleHashesEqual() throws Exception {
+        // 400 years is 146097 days from any start date, so these are equal
+        String[][] same = {
+            {"P400Y", "P146097D"}, {"-P400Y", "-P146097D"}, {"P401Y1M", "P1Y1M146097D"},
+            {"P400YT0.5S", "P146097DT0.5S"}, {"P800Y", "P292194D"}
+        };
+        for (String[] pair : same) {
+            XmlDuration x = XmlDuration.Factory.newValue(pair[0]);
+            XmlDuration y = XmlDuration.Factory.newValue(pair[1]);
+            assertTrue(x.valueEquals(y), pair[0] + " " + pair[1]);
+            assertEquals(x.valueHashCode(), y.valueHashCode(), pair[0] + " " + pair[1]);
+            assertEquals(Collections.singletonList("cvc-identity-constraint.4.1"),
+                unique(pair[0], pair[1]), pair[0] + " " + pair[1]);
+        }
+        assertFalse(XmlDuration.Factory.newValue("P400Y").valueEquals(
+            XmlDuration.Factory.newValue("P146096D")));
+    }
 }

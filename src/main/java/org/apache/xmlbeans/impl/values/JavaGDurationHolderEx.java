@@ -163,12 +163,16 @@ public abstract class JavaGDurationHolderEx extends XmlObjectBase {
         long months = (long) _value.getYear() * 12 + _value.getMonth();
         BigDecimal seconds = BigDecimal.valueOf(
             (((long) _value.getDay() * 24 + _value.getHour()) * 60 + _value.getMinute()) * 60 + _value.getSecond())
-            .add(_value.getFraction()).stripTrailingZeros();
+            .add(_value.getFraction());
         if (_value.getSign() < 0) {
             months = -months;
             seconds = seconds.negate();
         }
-        return Long.hashCode(months) * 31 + seconds.hashCode();
+        // every 400 years is exactly 146097 days from any start date, so equal_to
+        // finds P400Y equal to P146097D; fold whole 400 year blocks into seconds
+        seconds = seconds.add(BigDecimal.valueOf(Math.floorDiv(months, 4800L) * 146097L * 86400L));
+        months = Math.floorMod(months, 4800L);
+        return Long.hashCode(months) * 31 + seconds.stripTrailingZeros().hashCode();
     }
 
     protected void validate_simpleval(String lexical, ValidationContext ctx) {
