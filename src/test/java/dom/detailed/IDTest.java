@@ -115,7 +115,7 @@ public class IDTest {
                 XmlError xerr = (XmlError) xmlerr;
                 System.out.println("Exception:" + xerr.getMessage());
             }
-            throw (new XmlException(new Throwable("XmlException occured")));
+            throw (new XmlException(new Throwable("XmlException occurred")));
         }
 
         // parse errors
