@@ -24,8 +24,10 @@ import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicReference;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  * XMLBEANS-616: two threads that touch XMLBeans for the first time at once, one through {@code XmlObject.Factory} and
@@ -36,30 +38,47 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * first thread then held the initialization of {@code XmlBeans}, the second that of {@code SchemaTypeLoaderBase}, and
  * each waited for the other's. Every attempt loads XMLBeans from the test class path in a class loader of its own, so
  * its classes start uninitialized; the generated type is XMLBeans' own {@code SchemaDocument}.</p>
+ *
+ * <p>Whatever a thread throws fails the test, so that a class path problem or a renamed class cannot pass as "no
+ * deadlock".</p>
  */
 public class StaticInitializationRingTest {
 
-    private static final int ATTEMPTS = 20;
+    // Without the fix 9 of 20 attempts hung, so 10 attempts all pass by chance only about once in 400.
+    private static final int ATTEMPTS = 10;
 
     private static final long TIMEOUT_MILLIS = 5000;
 
     @Test
     void firstContactFromBothEndsDoesNotDeadlock() throws Exception {
         URL[] classPath = testClassPath();
-        int hung = 0;
-        for (int attempt = 0; attempt < ATTEMPTS && hung == 0; attempt++) {
+        for (int attempt = 1; attempt <= ATTEMPTS; attempt++) {
             URLClassLoader loader = new URLClassLoader(classPath, ClassLoader.getPlatformClassLoader());
             CountDownLatch start = new CountDownLatch(1);
-            Thread untyped = touch(loader, start, "org.apache.xmlbeans.XmlObject");
-            Thread typed = touch(loader, start, "org.apache.xmlbeans.impl.xb.xsdschema.SchemaDocument");
+            AtomicReference<Throwable> untypedFailure = new AtomicReference<>();
+            AtomicReference<Throwable> typedFailure = new AtomicReference<>();
+            Thread untyped = touch(loader, start, "org.apache.xmlbeans.XmlObject", untypedFailure);
+            Thread typed = touch(loader, start, "org.apache.xmlbeans.impl.xb.xsdschema.SchemaDocument", typedFailure);
             start.countDown();
             untyped.join(TIMEOUT_MILLIS);
             typed.join(TIMEOUT_MILLIS);
-            if (untyped.isAlive() || typed.isAlive()) {
-                hung++;
+            boolean hung = untyped.isAlive() || typed.isAlive();
+            if (!hung) {
+                // a hung thread keeps its loader; only a finished attempt can let it go
+                loader.close();
             }
+            assertFalse(hung, "attempt " + attempt + ": the first contact from both ends of the static "
+                + "initialization deadlocked");
+            failOn(untypedFailure, "XmlObject", attempt);
+            failOn(typedFailure, "SchemaDocument", attempt);
         }
-        assertEquals(0, hung, "the first contact from both ends of the static initialization deadlocked");
+    }
+
+    private static void failOn(AtomicReference<Throwable> failure, String entry, int attempt) {
+        if (failure.get() != null) {
+            fail("attempt " + attempt + ": the first contact through " + entry + " failed, so the attempt says "
+                + "nothing about the deadlock", failure.get());
+        }
     }
 
     private static URL[] testClassPath() throws MalformedURLException {
@@ -70,14 +89,17 @@ public class StaticInitializationRingTest {
         return urls.toArray(new URL[0]);
     }
 
-    private static Thread touch(ClassLoader loader, CountDownLatch start, String type) {
+    private static Thread touch(ClassLoader loader, CountDownLatch start, String type,
+                                AtomicReference<Throwable> failure) {
         Thread thread = new Thread(() -> {
             try {
                 start.await();
                 Object factory = Class.forName(type, true, loader).getField("Factory").get(null);
                 factory.getClass().getMethod("newInstance").invoke(factory);
-            } catch (Exception e) {
-                throw new IllegalStateException(e);
+            } catch (Throwable t) {
+                // also Errors: a failed class initialization throws ExceptionInInitializerError,
+                // a missing class NoClassDefFoundError
+                failure.set(t);
             }
         });
         thread.setDaemon(true);
