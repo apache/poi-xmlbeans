@@ -33,7 +33,7 @@ import static org.w3c.domts.DOMTest.load;
  * The "setAttributeNS(namespaceURI,qualifiedName,value)" method adds a new attribute.
  * If an attribute with the same local name and namespace URI is already present
  * on the element, its prefix is changed to be the prefix part of the "qualifiedName",
- * and its vale is changed to be the "value" paramter.
+ * and its vale is changed to be the "value" parameter.
  * null value if no previously existing Attr node with the
  * same name was replaced.
  * <p>
