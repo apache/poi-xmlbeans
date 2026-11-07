@@ -643,6 +643,11 @@ public final class GDateBuilder implements GDateSpecification, java.io.Serializa
         } else {
             // No timezone, or incomplete date.
             _normalizeTimeAndDate();
+
+            // +00:00 and -00:00 are the same timezone as Z
+            if (hasTimeZone() && _tzh == 0 && _tzm == 0) {
+                _tzsign = 0;
+            }
         }
 
         // remove trailing zeros from fractional seconds
@@ -1485,6 +1490,11 @@ public final class GDateBuilder implements GDateSpecification, java.io.Serializa
         boolean needNormalize =
             (hasTimeZone() && getTimeZoneSign() != 0 && hasTime() &&
              ((hasDay() == hasMonth() && hasDay() == hasYear())));
+
+        // +00:00 and -00:00 are the same timezone as Z
+        if (!needNormalize && hasTimeZone() && getTimeZoneSign() != 0) {
+            needNormalize = (getTimeZoneHour() == 0 && getTimeZoneMinute() == 0);
+        }
 
         if (!needNormalize && getFraction() != null && getFraction().scale() > 0) {
             BigInteger bi = getFraction().unscaledValue();
