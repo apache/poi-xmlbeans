@@ -110,6 +110,79 @@ public class RegularExpressionTest {
         }
     }
 
+    @Test
+    void testWordEscapeDefaultsToLetterAndDigitTables() {
+        // without xmlbean.regex.strictword, \w keeps the XML 1.0 Letter and Digit tables
+        RegularExpression word = new RegularExpression("\\w+", "X");
+        RegularExpression notWord = new RegularExpression("\\W+", "X");
+        assertFalse(word.matches("+"));
+        assertTrue(notWord.matches("+"));
+        assertFalse(word.matches("\u017F"));
+        assertTrue(word.matches("a1"));
+    }
+
+    @Test
+    void testWordEscapeFollowsSchemaDefinition() {
+        System.setProperty("xmlbean.regex.strictword", "true");
+        try {
+            checkStrictWordEscape();
+        } finally {
+            System.clearProperty("xmlbean.regex.strictword");
+        }
+    }
+
+    private static void checkStrictWordEscape() {
+        // XML Schema defines \w as [#x0000-#x10FFFF]-[\p{P}\p{Z}\p{C}]: everything that
+        // is not punctuation, a separator or "other". The schema-mode parser builds it
+        // from the XML 1.0 Letter and Digit tables by default, so symbols, marks,
+        // letter-like numbers and letters added after Unicode 2.0 are outside \w while
+        // \W and [^\w] match them (the same bug as XERCESJ-1651 in the Xerces port)
+        RegularExpression word = new RegularExpression("\\w+", "X");
+        RegularExpression notWord = new RegularExpression("\\W+", "X");
+        RegularExpression negated = new RegularExpression("[^\\w]+", "X");
+        for (int cp = 0; cp < 0x10000; cp++) {
+            int type = Character.getType(cp);
+            if (type == Character.SURROGATE) {
+                continue;
+            }
+            String s = String.valueOf((char) cp);
+            boolean in;
+            switch (type) {
+                case Character.CONNECTOR_PUNCTUATION:
+                case Character.DASH_PUNCTUATION:
+                case Character.START_PUNCTUATION:
+                case Character.END_PUNCTUATION:
+                case Character.INITIAL_QUOTE_PUNCTUATION:
+                case Character.FINAL_QUOTE_PUNCTUATION:
+                case Character.OTHER_PUNCTUATION:
+                case Character.SPACE_SEPARATOR:
+                case Character.LINE_SEPARATOR:
+                case Character.PARAGRAPH_SEPARATOR:
+                case Character.CONTROL:
+                case Character.FORMAT:
+                case Character.PRIVATE_USE:
+                case Character.UNASSIGNED:
+                    in = false;
+                    break;
+                default:
+                    in = true;
+            }
+            String hex = Integer.toHexString(cp);
+            assertEquals(in, word.matches(s), () -> "\\w, code point " + hex);
+            assertEquals(!in, notWord.matches(s), () -> "\\W, code point " + hex);
+            assertEquals(!in, negated.matches(s), () -> "[^\\w], code point " + hex);
+        }
+        // a few of the characters the old tables got wrong, spelled out
+        for (String s : new String[]{"^", "+", "|", "$", "\u0301", "\u2167", "\u01C5", "\u017F", "\uFB00"}) {
+            assertTrue(word.matches(s), s);
+            assertFalse(notWord.matches(s), s);
+        }
+        for (String s : new String[]{".", "-", "(", "\u00AB", " ", "\u00A0", "\t", "\u200B"}) {
+            assertFalse(word.matches(s), s);
+            assertTrue(notWord.matches(s), s);
+        }
+    }
+
     private static final String AB ="0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     private static final Random rnd = new Random();
 
