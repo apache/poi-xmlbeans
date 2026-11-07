@@ -286,6 +286,16 @@ public final class Validator
 
                     assert newField != null;
 
+                    if (isSubstitutionBlocked((SchemaLocalElement) currentParticle, newField.getType())) {
+                        emitFieldError(event, XmlErrorCodes.PARTICLE_VALID$BLOCK_DERIVATION,
+                            new Object[]{QNameHelper.pretty(name)},
+                            name, state._type, null,
+                            XmlValidationError.ELEMENT_NOT_ALLOWED, state._type);
+
+                        _eatContent = 1;
+                        return;
+                    }
+
                     elementField = newField;
                     _localElement = newField;
                 } else {
@@ -796,6 +806,36 @@ public final class Validator
             emitFieldError(event, XmlErrorCodes.ELEM_COMPLEX_TYPE_LOCALLY_VALID$EXPECTED_ELEMENT,
                 null, null, null, null, XmlValidationError.ELEMENT_NOT_ALLOWED, state._type);
         }
+    }
+
+    /**
+     * Substitution Group OK (Transitive) 2.3: a member is not part of the
+     * substitution group when its type is derived from the head's type by a
+     * method that the head element, the head's type or an intermediate type blocks.
+     */
+    private static boolean isSubstitutionBlocked(SchemaLocalElement head, SchemaType memberType) {
+        SchemaType headType = head.getType();
+        boolean blockExt = head.blockExtension();
+        boolean blockRest = head.blockRestriction();
+        boolean ext = false;
+        boolean rest = false;
+
+        for (SchemaType t = memberType; !t.equals(headType); ) {
+            if (t.getDerivationType() == SchemaType.DT_EXTENSION) {
+                ext = true;
+            } else {
+                rest = true;
+            }
+            t = t.getBaseType();
+            if (t == null) {
+                // head type is not on the base chain (union member), nothing to check
+                return false;
+            }
+            blockExt |= t.blockExtension();
+            blockRest |= t.blockRestriction();
+        }
+
+        return (ext && blockExt) || (rest && blockRest);
     }
 
 
