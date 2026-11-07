@@ -424,6 +424,61 @@ public class ValidatingXMLStreamReaderTests {
         assertEquals("cvc-maxInclusive-valid", errors.iterator().next().getErrorCode());
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = {
+        "<h xmlns='urn:t' xmlns:t='urn:t' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:type='t:ext'><b/></h>",
+        "<i xmlns='urn:t' xmlns:t='urn:t' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:type='t:small'>3</i>",
+        "<n xmlns='urn:t' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:nil='true'/>"
+    })
+    void testXsiAttributesOnRootElement(String doc) throws Exception {
+        // xsi:type and xsi:nil on the root element apply to the root element,
+        // not to the document type the validator is started with
+        XMLStreamReader xsr = XMLInputFactory.newInstance().createXMLStreamReader(new StringReader(doc));
+        Collection<XmlError> errors = new ArrayList<>();
+
+        ValidatingXMLStreamReader valXsr = new ValidatingXMLStreamReader();
+        valXsr.init(xsr, false, null, rootXsiLoader(), null, errors);
+
+        while (valXsr.hasNext()) {
+            valXsr.next();
+        }
+
+        assertTrue(valXsr.isValid(), errors.toString());
+    }
+
+    @Test
+    void testXsiTypeOnRootElementIsValidated() throws Exception {
+        String doc = "<i xmlns='urn:t' xmlns:t='urn:t' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:type='t:small'>9</i>";
+        XMLStreamReader xsr = XMLInputFactory.newInstance().createXMLStreamReader(new StringReader(doc));
+        Collection<XmlError> errors = new ArrayList<>();
+
+        ValidatingXMLStreamReader valXsr = new ValidatingXMLStreamReader();
+        valXsr.init(xsr, false, null, rootXsiLoader(), null, errors);
+
+        while (valXsr.hasNext()) {
+            valXsr.next();
+        }
+
+        assertFalse(valXsr.isValid());
+        assertEquals(1, errors.size(), errors.toString());
+        assertEquals("cvc-maxInclusive-valid", errors.iterator().next().getErrorCode());
+    }
+
+    private static SchemaTypeLoader rootXsiLoader() throws XmlException {
+        String xsd =
+            "<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema' targetNamespace='urn:t' xmlns:t='urn:t' elementFormDefault='qualified'>" +
+            "  <xs:complexType name='base'><xs:sequence><xs:element name='a' minOccurs='0'/></xs:sequence></xs:complexType>" +
+            "  <xs:complexType name='ext'><xs:complexContent><xs:extension base='t:base'>" +
+            "    <xs:sequence><xs:element name='b'/></xs:sequence>" +
+            "  </xs:extension></xs:complexContent></xs:complexType>" +
+            "  <xs:simpleType name='small'><xs:restriction base='xs:int'><xs:maxInclusive value='5'/></xs:restriction></xs:simpleType>" +
+            "  <xs:element name='h' type='t:base'/>" +
+            "  <xs:element name='i' type='xs:int'/>" +
+            "  <xs:element name='n' type='xs:int' nillable='true'/>" +
+            "</xs:schema>";
+        return XmlBeans.loadXsd(new XmlObject[]{SchemaDocument.Factory.parse(xsd)});
+    }
+
     @Test
     void testEventsSeenAroundProcessingInstruction() throws Exception {
         // the reader passes events through to its caller, so packing text also
