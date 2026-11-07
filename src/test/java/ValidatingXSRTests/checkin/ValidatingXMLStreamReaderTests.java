@@ -433,24 +433,44 @@ public class ValidatingXMLStreamReaderTests {
     void testXsiAttributesOnRootElement(String doc) throws Exception {
         // xsi:type and xsi:nil on the root element apply to the root element,
         // not to the document type the validator is started with
-        XMLStreamReader xsr = XMLInputFactory.newInstance().createXMLStreamReader(new StringReader(doc));
-        Collection<XmlError> errors = new ArrayList<>();
-
-        ValidatingXMLStreamReader valXsr = new ValidatingXMLStreamReader();
-        valXsr.init(xsr, false, null, rootXsiLoader(), null, errors);
-
-        while (valXsr.hasNext()) {
-            valXsr.next();
-        }
-
-        assertTrue(valXsr.isValid(), errors.toString());
+        List<XmlError> errors = validateWithRootXsiLoader(doc);
+        assertTrue(errors.isEmpty(), errors.toString());
     }
 
     @Test
     void testXsiTypeOnRootElementIsValidated() throws Exception {
-        String doc = "<i xmlns='urn:t' xmlns:t='urn:t' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:type='t:small'>9</i>";
+        assertSingleRootXsiError(
+            "<i xmlns='urn:t' xmlns:t='urn:t' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:type='t:small'>9</i>",
+            XmlErrorCodes.DATATYPE_MAX_INCLUSIVE_VALID);
+    }
+
+    @Test
+    void testXsiTypeOnRootElementNotDerived() throws Exception {
+        // the xsi:type check moved to the root element's BEGIN; it must still reject
+        // a type that is not derived from the element's declared type
+        assertSingleRootXsiError(
+            "<h xmlns='urn:t' xmlns:t='urn:t' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:type='t:small'/>",
+            XmlErrorCodes.ELEM_LOCALLY_VALID$XSI_TYPE_NOT_DERIVED);
+    }
+
+    @Test
+    void testXsiNilOnNonNillableRootElement() throws Exception {
+        // the xsi:nil check moved to the root element's BEGIN; it must still reject
+        // xsi:nil on an element that is not nillable
+        assertSingleRootXsiError(
+            "<i xmlns='urn:t' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:nil='true'/>",
+            XmlErrorCodes.ELEM_LOCALLY_VALID$NOT_NILLABLE);
+    }
+
+    private static void assertSingleRootXsiError(String doc, String expectedCode) throws Exception {
+        List<XmlError> errors = validateWithRootXsiLoader(doc);
+        assertEquals(1, errors.size(), errors.toString());
+        assertEquals(expectedCode, errors.get(0).getErrorCode());
+    }
+
+    private static List<XmlError> validateWithRootXsiLoader(String doc) throws Exception {
         XMLStreamReader xsr = XMLInputFactory.newInstance().createXMLStreamReader(new StringReader(doc));
-        Collection<XmlError> errors = new ArrayList<>();
+        List<XmlError> errors = new ArrayList<>();
 
         ValidatingXMLStreamReader valXsr = new ValidatingXMLStreamReader();
         valXsr.init(xsr, false, null, rootXsiLoader(), null, errors);
@@ -459,9 +479,8 @@ public class ValidatingXMLStreamReaderTests {
             valXsr.next();
         }
 
-        assertFalse(valXsr.isValid());
-        assertEquals(1, errors.size(), errors.toString());
-        assertEquals("cvc-maxInclusive-valid", errors.iterator().next().getErrorCode());
+        assertEquals(errors.isEmpty(), valXsr.isValid(), errors.toString());
+        return errors;
     }
 
     private static SchemaTypeLoader rootXsiLoader() throws XmlException {
