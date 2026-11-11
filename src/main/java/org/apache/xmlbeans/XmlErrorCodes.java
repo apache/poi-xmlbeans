@@ -496,6 +496,12 @@ public abstract class XmlErrorCodes
     public static final String PARTICLE_VALID$BLOCK_SUBSTITUTION = "cvc-particle.2.3.3a";
 
     /**
+     * cvc-particle.2.3.3b: See
+     * <a href="http://www.w3c.org/TR/xmlschema-1/#cvc-particle">XMLSchema Structures 1.0: Element Sequence Locally Valid (Particle)</a>
+     */
+    public static final String PARTICLE_VALID$BLOCK_DERIVATION = "cvc-particle.2.3.3b";
+
+    /**
      * cvc-pattern-valid: See
      * <a href="http://www.w3c.org/TR/xmlschema-2/#cvc-pattern-valid">XMLSchema Datatypes 1.0: pattern valid</a>
      */
