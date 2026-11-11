@@ -629,7 +629,8 @@ public final class GDateBuilder implements GDateSpecification, java.io.Serializa
      * their normal ranges.
      * <p>
      * If no timezone or no time is specified, or if a partial date is specified, this
-     * method does nothing, and leaves the timezone information as-is.
+     * method leaves the timezone information as-is, except that a zero offset
+     * (+00:00 or -00:00) is replaced by Z.
      * <p>
      * If a time or time and date is specified, this method normalizes the timezone
      * to UTC.
@@ -1487,21 +1488,7 @@ public final class GDateBuilder implements GDateSpecification, java.io.Serializa
      * information.
      */
     public String canonicalString() {
-        boolean needNormalize =
-            (hasTimeZone() && getTimeZoneSign() != 0 && hasTime() &&
-             ((hasDay() == hasMonth() && hasDay() == hasYear())));
-
-        // +00:00 and -00:00 are the same timezone as Z
-        if (!needNormalize && hasTimeZone() && getTimeZoneSign() != 0) {
-            needNormalize = (getTimeZoneHour() == 0 && getTimeZoneMinute() == 0);
-        }
-
-        if (!needNormalize && getFraction() != null && getFraction().scale() > 0) {
-            BigInteger bi = getFraction().unscaledValue();
-            needNormalize = (bi.mod(TEN).signum() == 0);
-        }
-
-        if (!needNormalize) {
+        if (!GDate.needsNormalization(this)) {
             return toString();
         }
 

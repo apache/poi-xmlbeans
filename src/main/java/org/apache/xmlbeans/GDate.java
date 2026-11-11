@@ -19,7 +19,6 @@ import org.apache.xmlbeans.impl.util.ExceptionUtil;
 import org.apache.xmlbeans.impl.util.MathUtil;
 
 import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.math.RoundingMode;
 import java.util.Calendar;
 import java.util.Date;
@@ -874,27 +873,34 @@ public final class GDate implements GDateSpecification, java.io.Serializable {
             return;
         }
 
-        boolean needNormalize =
-            (hasTimeZone() && getTimeZoneSign() != 0 && hasTime() &&
-             ((hasDay() == hasMonth() && hasDay() == hasYear())));
-
-        // +00:00 and -00:00 are the same timezone as Z
-        if (!needNormalize && hasTimeZone() && getTimeZoneSign() != 0) {
-            needNormalize = (getTimeZoneHour() == 0 && getTimeZoneMinute() == 0);
-        }
-
-        if (!needNormalize && getFraction() != null && getFraction().scale() > 0) {
-            BigInteger bi = getFraction().unscaledValue();
-            needNormalize = (bi.mod(GDateBuilder.TEN).signum() == 0);
-        }
-
-        if (!needNormalize) {
+        if (!needsNormalization(this)) {
             _canonicalString = toString();
         } else {
             GDateBuilder gdb = new GDateBuilder(this);
             gdb.normalize();
             _canonicalString = gdb.toString();
         }
+    }
+
+    /**
+     * Whether the canonical string of the given date differs from its natural
+     * string, so that it must be built from a normalized copy.
+     */
+    static boolean needsNormalization(GDateSpecification date) {
+        if (date.hasTimeZone() && date.getTimeZoneSign() != 0) {
+            // a time with a complete or empty date is normalized to UTC
+            if (date.hasTime() && date.hasDay() == date.hasMonth() && date.hasDay() == date.hasYear()) {
+                return true;
+            }
+            // +00:00 and -00:00 are the same timezone as Z
+            if (date.getTimeZoneHour() == 0 && date.getTimeZoneMinute() == 0) {
+                return true;
+            }
+        }
+
+        // trailing zeros in the fractional seconds are dropped
+        BigDecimal fs = date.getFraction();
+        return fs != null && fs.scale() > 0 && fs.unscaledValue().mod(GDateBuilder.TEN).signum() == 0;
     }
 
     /**
