@@ -19,10 +19,12 @@
  */
 package org.apache.xmlbeans.impl.common;
 
+import org.apache.xmlbeans.XmlOptions;
 import org.w3c.dom.Document;
+import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
+import org.xml.sax.XMLReader;
 
-import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.stream.XMLStreamWriter;
 import javax.xml.stream.XMLOutputFactory;
@@ -38,12 +40,14 @@ public class LoadSaveUtils
     public static Document xmlText2GenericDom(InputStream is, Document emptyDoc)
             throws SAXException, ParserConfigurationException, IOException
     {
-        SAXParser parser = SAXHelper.saxFactory().newSAXParser();
+        XMLReader reader = SAXHelper.newXMLReader(new XmlOptions());
 
         Sax2Dom handler = new Sax2Dom(emptyDoc);
 
-        parser.setProperty("http://xml.org/sax/properties/lexical-handler", handler);
-        parser.parse(is, handler);
+        reader.setContentHandler(handler);
+        reader.setErrorHandler(handler);
+        reader.setProperty("http://xml.org/sax/properties/lexical-handler", handler);
+        reader.parse(new InputSource(is));
 
         return (Document) handler.getDOM();
     }
