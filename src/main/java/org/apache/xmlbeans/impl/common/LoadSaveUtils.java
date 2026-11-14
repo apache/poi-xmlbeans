@@ -37,10 +37,37 @@ import java.io.InputStream;
 
 public class LoadSaveUtils
 {
+    /**
+     * Parses XML text into {@code emptyDoc} using the default {@link XmlOptions}.
+     * External entities are not resolved.
+     *
+     * @see #xmlText2GenericDom(InputStream, Document, XmlOptions)
+     */
     public static Document xmlText2GenericDom(InputStream is, Document emptyDoc)
             throws SAXException, ParserConfigurationException, IOException
     {
-        XMLReader reader = SAXHelper.newXMLReader(new XmlOptions());
+        return xmlText2GenericDom(is, emptyDoc, null);
+    }
+
+    /**
+     * Parses XML text into {@code emptyDoc}.
+     * <p>
+     * The parser honours {@link XmlOptions#getEntityExpansionLimit()},
+     * {@link XmlOptions#disallowDocTypeDeclaration()}, {@link XmlOptions#isLoadDTDGrammar()}
+     * and {@link XmlOptions#isLoadExternalDTD()}. External entities are not resolved unless
+     * an entity resolver is set with {@link XmlOptions#setEntityResolver}.
+     *
+     * @param options the options to use, or {@code null} for the defaults
+     * @since 5.5.0
+     */
+    public static Document xmlText2GenericDom(InputStream is, Document emptyDoc, XmlOptions options)
+            throws SAXException, ParserConfigurationException, IOException
+    {
+        XmlOptions opts = new XmlOptions(options);
+        XMLReader reader = SAXHelper.newXMLReader(opts);
+        if (opts.getEntityResolver() != null) {
+            reader.setEntityResolver(opts.getEntityResolver());
+        }
 
         Sax2Dom handler = new Sax2Dom(emptyDoc);
 
