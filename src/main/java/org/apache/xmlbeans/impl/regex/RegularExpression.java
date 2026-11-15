@@ -2245,6 +2245,12 @@ public class RegularExpression implements java.io.Serializable {
      * ",".
      */
     static final int SPECIAL_COMMA = 1<<10;
+    /**
+     * "L". Only meaningful with "X": \w and \W use the XML 1.0 Letter and Digit
+     * tables that XMLBeans used before 6.0.0, instead of the XML Schema definition
+     * of \w ({@code [#x0000-#x10FFFF]-[\p{P}\p{Z}\p{C}]}).
+     */
+    static final int XMLSCHEMA_LEGACY_WORD = 1<<11;
 
 
     private static boolean isSet(int options, int flag) {
@@ -2349,6 +2355,17 @@ public class RegularExpression implements java.io.Serializable {
      */
     public String getOptions() {
         return REUtil.createOptionString(this.options);
+    }
+
+    /**
+     * Returns true if this expression was compiled with the "L" option, so that
+     * \w and \W use the XML 1.0 Letter and Digit tables instead of the
+     * XML Schema definition of \w.
+     *
+     * @since 6.0.0
+     */
+    public boolean isLegacyWordClass() {
+        return isSet(this.options, XMLSCHEMA_LEGACY_WORD);
     }
 
     /**

@@ -131,6 +131,7 @@ public class XmlOptions implements java.io.Serializable {
         COMPILE_NO_VALIDATION,
         COMPILE_NO_UPA_RULE,
         COMPILE_NO_PVR_RULE,
+        COMPILE_LEGACY_REGEX_WORD_CLASS,
         COMPILE_NO_ANNOTATIONS,
         COMPILE_DOWNLOAD_URLS,
         COMPILE_MDEF_NAMESPACES,
@@ -1076,6 +1077,40 @@ public class XmlOptions implements java.io.Serializable {
 
     public boolean isCompileNoPvrRule() {
         return hasOption(XmlOptionsKeys.COMPILE_NO_PVR_RULE);
+    }
+
+    /**
+     * If this option is set, {@code \w} and {@code \W} in pattern facets use the
+     * XML 1.0 Letter and Digit tables, as XMLBeans did before 6.0.0, instead of the
+     * XML Schema definition of {@code \w}, which is every character except
+     * punctuation, separators and "other" characters
+     * ({@code [#x0000-#x10FFFF]-[\p{P}\p{Z}\p{C}]}). See
+     * <a target="_blank" href="https://www.w3.org/TR/xmlschema-2/#cces-mce">Appendix F of the XML Schema Part 2 specification</a>.
+     * <p>
+     * The setting is stored with the compiled {@code SchemaTypeSystem}. Type systems
+     * compiled by XMLBeans versions before 6.0.0 keep the old tables when loaded.
+     *
+     * @see XmlBeans#compileXsd
+     * @since 6.0.0
+     */
+    public XmlOptions setCompileLegacyRegexWordClass() {
+        return setCompileLegacyRegexWordClass(true);
+    }
+
+    /**
+     * @see #setCompileLegacyRegexWordClass()
+     * @since 6.0.0
+     */
+    public XmlOptions setCompileLegacyRegexWordClass(boolean b) {
+        return set(XmlOptionsKeys.COMPILE_LEGACY_REGEX_WORD_CLASS, b);
+    }
+
+    /**
+     * @see #setCompileLegacyRegexWordClass()
+     * @since 6.0.0
+     */
+    public boolean isCompileLegacyRegexWordClass() {
+        return hasOption(XmlOptionsKeys.COMPILE_LEGACY_REGEX_WORD_CLASS);
     }
 
     /**

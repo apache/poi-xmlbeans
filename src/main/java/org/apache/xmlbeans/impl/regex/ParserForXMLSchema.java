@@ -287,6 +287,11 @@ class ParserForXMLSchema extends RegexParser {
         throw this.ex("parser.process.1", this.offset);
     }
 
+    private String wordRangeName() {
+        return (this.options & RegularExpression.XMLSCHEMA_LEGACY_WORD) != 0
+            ? "xml:isWordLegacy" : "xml:isWord";
+    }
+
     Token getTokenForShorthand(int ch) {
         switch (ch) {
           case 'd':
@@ -294,9 +299,9 @@ class ParserForXMLSchema extends RegexParser {
           case 'D':
             return ParserForXMLSchema.getRange("xml:isDigit", false);
           case 'w':
-            return ParserForXMLSchema.getRange("xml:isWord", true);
+            return ParserForXMLSchema.getRange(wordRangeName(), true);
           case 'W':
-            return ParserForXMLSchema.getRange("xml:isWord", false);
+            return ParserForXMLSchema.getRange(wordRangeName(), false);
           case 's':
             return ParserForXMLSchema.getRange("xml:isSpace", true);
           case 'S':
@@ -366,8 +371,20 @@ class ParserForXMLSchema extends RegexParser {
             tok = Token.createRange();
             setupRange(tok, LETTERS);
             tok.mergeRanges(ranges.get("xml:isDigit"));
-            ranges.put("xml:isWord", tok);
-            ranges2.put("xml:isWord", Token.complementRanges(tok));
+            // the XML 1.0 Letter and Digit tables, used for \w with the "L" option
+            ranges.put("xml:isWordLegacy", tok);
+            ranges2.put("xml:isWordLegacy", Token.complementRanges(tok));
+
+            /*
+             * \w is defined by the XML Schema specification to be:
+             * [#x0000-#x10FFFF]-[\p{P}\p{Z}\p{C}] (all characters except the set of "punctuation", "separator" and "other" characters)
+             */
+            tok = Token.createRange();
+            tok.mergeRanges(Token.getRange("P", true));
+            tok.mergeRanges(Token.getRange("Z", true));
+            tok.mergeRanges(Token.getRange("C", true));
+            ranges2.put("xml:isWord", tok);
+            ranges.put("xml:isWord", Token.complementRanges(tok));
 
             tok = Token.createRange();
             setupRange(tok, NAMECHARS);

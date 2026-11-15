@@ -92,6 +92,9 @@ public class SchemaTypeSystemImpl extends SchemaTypeLoaderBase implements Schema
     static final int FLAG_FINAL_LIST = 0x20000;
     static final int FLAG_ABSTRACT = 0x40000;
     static final int FLAG_ATTRIBUTE_TYPE = 0x80000;
+    // pattern facets use the XML Schema definition of \w; types written before
+    // this flag existed use the XML 1.0 Letter and Digit tables
+    static final int FLAG_SCHEMA_REGEX_WORD = 0x100000;
 
     /**
      * regex to identify the type system holder package namespace

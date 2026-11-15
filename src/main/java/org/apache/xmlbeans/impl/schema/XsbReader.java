@@ -1032,8 +1032,9 @@ class XsbReader {
 
                 int patternCount = readShort();
                 org.apache.xmlbeans.impl.regex.RegularExpression[] patterns = new org.apache.xmlbeans.impl.regex.RegularExpression[patternCount];
+                String patternOptions = (flags & FLAG_SCHEMA_REGEX_WORD) != 0 ? "X" : "XL";
                 for (int i = 0; i < patternCount; i++) {
-                    patterns[i] = new org.apache.xmlbeans.impl.regex.RegularExpression(readString(), "X");
+                    patterns[i] = new org.apache.xmlbeans.impl.regex.RegularExpression(readString(), patternOptions);
                 }
                 impl.setPatterns(patterns);
 
@@ -1164,6 +1165,10 @@ class XsbReader {
         }
         if (type.hasPatternFacet()) {
             flags |= FLAG_HAS_PATTERN;
+        }
+        org.apache.xmlbeans.impl.regex.RegularExpression[] typePatterns = ((SchemaTypeImpl) type).getPatternExpressions();
+        if (typePatterns.length > 0 && !typePatterns[0].isLegacyWordClass()) {
+            flags |= FLAG_SCHEMA_REGEX_WORD;
         }
         if (type.isOrderSensitive()) {
             flags |= FLAG_ORDER_SENSITIVE;

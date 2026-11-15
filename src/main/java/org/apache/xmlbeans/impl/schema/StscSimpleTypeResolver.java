@@ -836,7 +836,8 @@ public class StscSimpleTypeResolver {
                         case SchemaType.FACET_PATTERN:
                             RegularExpression p;
                             try {
-                                p = new RegularExpression(facet.getValue().getStringValue(), "X");
+                                p = new RegularExpression(facet.getValue().getStringValue(),
+                                    state.legacyRegexWordClass() ? "XL" : "X");
                             } catch (ParseException e) {
                                 state.error(XmlErrorCodes.PATTERN_REGEX, new Object[]{facet.getValue().getStringValue(), e.getMessage()}, facet);
                                 continue;
