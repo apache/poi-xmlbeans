@@ -140,6 +140,7 @@ public class XmlOptions implements java.io.Serializable {
         COMPILE_ANNOTATION_JAVADOC,
         VALIDATE_ON_SET,
         VALIDATE_TREAT_LAX_AS_SKIP,
+        VALIDATE_WILDCARD_IGNORE_XSI_TYPE,
         VALIDATE_STRICT,
         VALIDATE_TEXT_ONLY,
         UNSYNCHRONIZED,
@@ -1300,6 +1301,42 @@ public class XmlOptions implements java.io.Serializable {
 
     public boolean isValidateTreatLaxAsSkip() {
         return hasOption(XmlOptionsKeys.VALIDATE_TREAT_LAX_AS_SKIP);
+    }
+
+    /**
+     * Restores the validation of undeclared wildcard elements used before 6.0.0.
+     * <p>
+     * By default, an element that matches a lax or strict {@code <any>} wildcard
+     * and has no global declaration is assessed against its {@code xsi:type}
+     * when it has one (XML Schema 1.0 cvc-assess-elt.1.2), so an unknown
+     * {@code xsi:type} or content that does not match the type is reported.
+     * With this option the {@code xsi:type} is ignored: such an element is
+     * skipped under a lax wildcard and reported as unresolved under a strict one,
+     * whether or not it has an {@code xsi:type}.
+     * <p>
+     * Unlike {@link #setValidateTreatLaxAsSkip()}, elements that do have a
+     * global declaration are still validated.
+     *
+     * @since 6.0.0
+     */
+    public XmlOptions setValidateWildcardIgnoreXsiType() {
+        return setValidateWildcardIgnoreXsiType(true);
+    }
+
+    /**
+     * @see #setValidateWildcardIgnoreXsiType()
+     * @since 6.0.0
+     */
+    public XmlOptions setValidateWildcardIgnoreXsiType(boolean b) {
+        return set(XmlOptionsKeys.VALIDATE_WILDCARD_IGNORE_XSI_TYPE, b);
+    }
+
+    /**
+     * @see #setValidateWildcardIgnoreXsiType()
+     * @since 6.0.0
+     */
+    public boolean isValidateWildcardIgnoreXsiType() {
+        return hasOption(XmlOptionsKeys.VALIDATE_WILDCARD_IGNORE_XSI_TYPE);
     }
 
     /**

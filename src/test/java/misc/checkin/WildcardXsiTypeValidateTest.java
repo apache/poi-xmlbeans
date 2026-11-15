@@ -96,4 +96,26 @@ public class WildcardXsiTypeValidateTest {
             assertEquals("cvc-assess-elt.1.1.1.3.2", errors.get(0).getErrorCode());
         }
     }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"lax", "strict"})
+    void ignoreXsiTypeOption(String processContents) throws Exception {
+        // setValidateWildcardIgnoreXsiType restores the pre-6.0.0 behaviour: the
+        // xsi:type of an undeclared wildcard element is not looked at
+        for (String child : new String[]{
+            "<u xsi:type='t:small'>3</u>",
+            "<u xsi:type='t:small'>9</u>",
+            "<u xsi:type='t:ct'><z>x</z></u>",
+            "<u xsi:type='t:missing'/>"}) {
+            List<XmlError> errors = new ArrayList<>();
+            parse(processContents, child).validate(
+                new XmlOptions().setErrorListener(errors).setValidateWildcardIgnoreXsiType());
+            if ("lax".equals(processContents)) {
+                assertTrue(errors.isEmpty(), child + " " + errors);
+            } else {
+                assertEquals(1, errors.size(), child + " " + errors);
+                assertEquals("cvc-assess-elt.1.1.1.3.2", errors.get(0).getErrorCode());
+            }
+        }
+    }
 }
