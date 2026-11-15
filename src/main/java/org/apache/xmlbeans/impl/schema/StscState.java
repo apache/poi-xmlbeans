@@ -104,6 +104,7 @@ public class StscState {
     private boolean _noUpa;
     private boolean _noPvr;
     private boolean _legacyRegexWordClass;
+    private boolean _legacyAttributeWildcards;
     private boolean _noAnn;
     private boolean _mdefAll;
     private String _sourceCodeEncoding ;
@@ -477,6 +478,7 @@ public class StscState {
         _doingDownloads = options.isCompileDownloadUrls() ||
                           "true".equals(SystemProperties.getProperty("xmlbean.downloadurls", "false"));
         _legacyRegexWordClass = options.isCompileLegacyRegexWordClass();
+        _legacyAttributeWildcards = options.isCompileLegacyAttributeWildcards();
         _maxNumberOfCharsForNumbers = options.getMaxNumberOfCharsForNumbers();
         _sourceCodeEncoding = options.getCharacterEncoding();
         if (_sourceCodeEncoding == null || _sourceCodeEncoding.isEmpty()) {
@@ -537,6 +539,14 @@ public class StscState {
      */
     public boolean legacyRegexWordClass() {
         return _legacyRegexWordClass;
+    }
+
+    /**
+     * True if attribute wildcards are built the pre-6.0.0 way,
+     * see {@link XmlOptions#setCompileLegacyAttributeWildcards()}.
+     */
+    public boolean legacyAttributeWildcards() {
+        return _legacyAttributeWildcards;
     }
 
     /**
