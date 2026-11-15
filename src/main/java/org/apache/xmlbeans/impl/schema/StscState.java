@@ -103,6 +103,7 @@ public class StscState {
     private final List<SchemaAnnotation> _annotations = new ArrayList<>();
     private boolean _noUpa;
     private boolean _noPvr;
+    private boolean _legacyRegexWordClass;
     private boolean _noAnn;
     private boolean _mdefAll;
     private String _sourceCodeEncoding ;
@@ -475,6 +476,7 @@ public class StscState {
                  !"true".equals(SystemProperties.getProperty("xmlbean.schemaannotations", "true"));
         _doingDownloads = options.isCompileDownloadUrls() ||
                           "true".equals(SystemProperties.getProperty("xmlbean.downloadurls", "false"));
+        _legacyRegexWordClass = options.isCompileLegacyRegexWordClass();
         _maxNumberOfCharsForNumbers = options.getMaxNumberOfCharsForNumbers();
         _sourceCodeEncoding = options.getCharacterEncoding();
         if (_sourceCodeEncoding == null || _sourceCodeEncoding.isEmpty()) {
@@ -527,6 +529,14 @@ public class StscState {
      */
     public boolean noPvr() {
         return _noPvr;
+    }
+
+    /**
+     * True if pattern facets use the pre-5.5.0 XML 1.0 Letter and Digit tables for \w,
+     * see {@link XmlOptions#setCompileLegacyRegexWordClass()}.
+     */
+    public boolean legacyRegexWordClass() {
+        return _legacyRegexWordClass;
     }
 
     /**

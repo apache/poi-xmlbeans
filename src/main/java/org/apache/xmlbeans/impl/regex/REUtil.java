@@ -83,6 +83,9 @@ public final class REUtil {
           case ',':
             ret = RegularExpression.SPECIAL_COMMA;
             break;
+          case 'L':
+            ret = RegularExpression.XMLSCHEMA_LEGACY_WORD;
+            break;
           default:
         }
         return ret;
@@ -122,6 +125,8 @@ public final class REUtil {
             sb.append((char)'x');
         if ((options & RegularExpression.SPECIAL_COMMA) != 0)
             sb.append((char)',');
+        if ((options & RegularExpression.XMLSCHEMA_LEGACY_WORD) != 0)
+            sb.append((char)'L');
         return sb.toString().intern();
     }
 

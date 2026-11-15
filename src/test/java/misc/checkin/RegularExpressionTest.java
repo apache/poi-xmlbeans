@@ -111,10 +111,12 @@ public class RegularExpressionTest {
     }
 
     @Test
-    void testWordEscapeDefaultsToLetterAndDigitTables() {
-        // without xmlbean.regex.strictword, \w keeps the XML 1.0 Letter and Digit tables
-        RegularExpression word = new RegularExpression("\\w+", "X");
-        RegularExpression notWord = new RegularExpression("\\W+", "X");
+    void testLegacyWordOption() {
+        // with the "L" option, \w keeps the XML 1.0 Letter and Digit tables
+        RegularExpression word = new RegularExpression("\\w+", "XL");
+        RegularExpression notWord = new RegularExpression("\\W+", "XL");
+        assertTrue(word.isLegacyWordClass());
+        assertTrue(word.getOptions().contains("L"));
         assertFalse(word.matches("+"));
         assertTrue(notWord.matches("+"));
         assertFalse(word.matches("\u017F"));
@@ -123,18 +125,9 @@ public class RegularExpressionTest {
 
     @Test
     void testWordEscapeFollowsSchemaDefinition() {
-        System.setProperty("xmlbean.regex.strictword", "true");
-        try {
-            checkStrictWordEscape();
-        } finally {
-            System.clearProperty("xmlbean.regex.strictword");
-        }
-    }
-
-    private static void checkStrictWordEscape() {
         // XML Schema defines \w as [#x0000-#x10FFFF]-[\p{P}\p{Z}\p{C}]: everything that
-        // is not punctuation, a separator or "other". The schema-mode parser builds it
-        // from the XML 1.0 Letter and Digit tables by default, so symbols, marks,
+        // is not punctuation, a separator or "other". The legacy ("L") tables are the
+        // XML 1.0 Letter and Digit tables, so symbols, marks,
         // letter-like numbers and letters added after Unicode 2.0 are outside \w while
         // \W and [^\w] match them (the same bug as XERCESJ-1651 in the Xerces port)
         RegularExpression word = new RegularExpression("\\w+", "X");
