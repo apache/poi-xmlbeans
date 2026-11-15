@@ -532,7 +532,7 @@ public class StscState {
     }
 
     /**
-     * True if pattern facets use the pre-5.5.0 XML 1.0 Letter and Digit tables for \w,
+     * True if pattern facets use the pre-6.0.0 XML 1.0 Letter and Digit tables for \w,
      * see {@link XmlOptions#setCompileLegacyRegexWordClass()}.
      */
     public boolean legacyRegexWordClass() {
