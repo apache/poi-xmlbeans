@@ -807,6 +807,16 @@ public class StscComplexTypeResolver {
                                         SchemaType baseType, boolean extension,
                                         SchemaAttributeGroupImpl redefinitionFor) {
         StscState state = StscState.get();
+        // the type's own wildcards (local and from attribute groups) are intersected,
+        // an extension then adds the base type's wildcard by union
+        QNameSet baseWildcardSet = null;
+        int baseWildcardProcess = SchemaAttributeModel.NONE;
+        if (extension && seenAttributes == null) {
+            baseWildcardSet = result.getWildcardSet();
+            baseWildcardProcess = result.getWildcardProcess();
+            result.setWildcardSet(null);
+            result.setWildcardProcess(SchemaAttributeModel.NONE);
+        }
         if (seenAttributes == null) {
             seenAttributes = new HashSet<>();
         }
@@ -924,13 +934,11 @@ public class StscComplexTypeResolver {
                             result.setWildcardSet(wcset);
                             result.setWildcardProcess(wcprocess);
                         } else {
+                            result.setWildcardSet(wcset.intersect(result.getWildcardSet()));
                             if (extension) {
-                                result.setWildcardSet(wcset.union(result.getWildcardSet()));
                                 result.setWildcardProcess(wcprocess);
-                            } else {
-                                result.setWildcardSet(wcset.intersect(result.getWildcardSet()));
-                                // keep old process
                             }
+                            // else keep old process
                         }
                         break;
                     }
@@ -994,6 +1002,14 @@ public class StscComplexTypeResolver {
         if (!extension && !seenWildcard) {
             result.setWildcardSet(null);
             result.setWildcardProcess(SchemaAttributeModel.NONE);
+        }
+        if (baseWildcardProcess != SchemaAttributeModel.NONE) {
+            if (result.getWildcardProcess() == SchemaAttributeModel.NONE) {
+                result.setWildcardSet(baseWildcardSet);
+                result.setWildcardProcess(baseWildcardProcess);
+            } else {
+                result.setWildcardSet(result.getWildcardSet().union(baseWildcardSet));
+            }
         }
     }
 
