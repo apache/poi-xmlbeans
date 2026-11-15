@@ -21,7 +21,7 @@
     <property name="jdk.version.class" value="17" description="JDK version of generated class files"/>
     <property name="compile.debug" value="true"/>
 
-    <property name="version.base" value="5.5.0-SNAPSHOT"/>
+    <property name="version.base" value="6.0.0-SNAPSHOT"/>
     <property name="version.rc" value=""/>
 
     <property name="cases.location" location="src/test/resources"/>

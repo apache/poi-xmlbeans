@@ -58,7 +58,7 @@ public class LoadSaveUtils
      * an entity resolver is set with {@link XmlOptions#setEntityResolver}.
      *
      * @param options the options to use, or {@code null} for the defaults
-     * @since 5.5.0
+     * @since 6.0.0
      */
     public static Document xmlText2GenericDom(InputStream is, Document emptyDoc, XmlOptions options)
             throws SAXException, ParserConfigurationException, IOException
