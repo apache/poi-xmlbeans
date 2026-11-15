@@ -132,6 +132,7 @@ public class XmlOptions implements java.io.Serializable {
         COMPILE_NO_UPA_RULE,
         COMPILE_NO_PVR_RULE,
         COMPILE_LEGACY_REGEX_WORD_CLASS,
+        COMPILE_LEGACY_ATTRIBUTE_WILDCARDS,
         COMPILE_NO_ANNOTATIONS,
         COMPILE_DOWNLOAD_URLS,
         COMPILE_MDEF_NAMESPACES,
@@ -1112,6 +1113,45 @@ public class XmlOptions implements java.io.Serializable {
      */
     public boolean isCompileLegacyRegexWordClass() {
         return hasOption(XmlOptionsKeys.COMPILE_LEGACY_REGEX_WORD_CLASS);
+    }
+
+    /**
+     * If this option is set, the attribute wildcard of a complex type is built
+     * the way XMLBeans did before 6.0.0:
+     * <ul>
+     * <li>the type's own {@code anyAttribute} and the {@code anyAttribute}s of its
+     * attribute groups are combined by union instead of intersection;</li>
+     * <li>in a restriction, a wildcard that comes only from attribute groups is
+     * dropped, and each wildcard is checked against the base type's wildcard on
+     * its own instead of the combined wildcard.</li>
+     * </ul>
+     * By default the complete wildcard follows
+     * <a target="_blank" href="https://www.w3.org/TR/xmlschema-1/#declare-type">Section 3.4.2 of the XML Schema specification</a>.
+     * <p>
+     * The attribute wildcard is stored in the compiled {@code SchemaTypeSystem}, so
+     * type systems compiled by older XMLBeans versions keep their wildcards when loaded.
+     *
+     * @see XmlBeans#compileXsd
+     * @since 6.0.0
+     */
+    public XmlOptions setCompileLegacyAttributeWildcards() {
+        return setCompileLegacyAttributeWildcards(true);
+    }
+
+    /**
+     * @see #setCompileLegacyAttributeWildcards()
+     * @since 6.0.0
+     */
+    public XmlOptions setCompileLegacyAttributeWildcards(boolean b) {
+        return set(XmlOptionsKeys.COMPILE_LEGACY_ATTRIBUTE_WILDCARDS, b);
+    }
+
+    /**
+     * @see #setCompileLegacyAttributeWildcards()
+     * @since 6.0.0
+     */
+    public boolean isCompileLegacyAttributeWildcards() {
+        return hasOption(XmlOptionsKeys.COMPILE_LEGACY_ATTRIBUTE_WILDCARDS);
     }
 
     /**

@@ -807,16 +807,75 @@ public class StscComplexTypeResolver {
                                         SchemaType baseType, boolean extension,
                                         SchemaAttributeGroupImpl redefinitionFor) {
         StscState state = StscState.get();
-        // the type's own wildcards (local and from attribute groups) are intersected,
-        // an extension then adds the base type's wildcard by union
-        QNameSet baseWildcardSet = null;
-        int baseWildcardProcess = SchemaAttributeModel.NONE;
-        if (extension && seenAttributes == null) {
-            baseWildcardSet = result.getWildcardSet();
-            baseWildcardProcess = result.getWildcardProcess();
-            result.setWildcardSet(null);
-            result.setWildcardProcess(SchemaAttributeModel.NONE);
+        if (state.legacyAttributeWildcards()) {
+            translateAttributeModel(parseTree, targetNamespace, chameleon, formDefault, anonymousTypes,
+                outerType, seenAttributes, result, baseType, extension, redefinitionFor, null);
+            return;
         }
+
+        // XML Schema 1.0 3.4.2: the complete wildcard is the intersection of the type's
+        // own anyAttribute and the wildcards of its attribute groups. An extension then
+        // adds the base type's wildcard by union; a restriction uses the complete
+        // wildcard alone, which must be a subset of the base type's wildcard.
+        QNameSet baseWildcardSet = result.getWildcardSet();
+        int baseWildcardProcess = result.getWildcardProcess();
+        result.setWildcardSet(null);
+        result.setWildcardProcess(SchemaAttributeModel.NONE);
+
+        WildcardSource source = new WildcardSource();
+        translateAttributeModel(parseTree, targetNamespace, chameleon, formDefault, anonymousTypes,
+            outerType, seenAttributes, result, baseType, extension, redefinitionFor, source);
+
+        if (extension) {
+            if (baseWildcardProcess != SchemaAttributeModel.NONE) {
+                if (result.getWildcardProcess() == SchemaAttributeModel.NONE) {
+                    result.setWildcardSet(baseWildcardSet);
+                    result.setWildcardProcess(baseWildcardProcess);
+                } else {
+                    result.setWildcardSet(result.getWildcardSet().union(baseWildcardSet));
+                }
+            }
+        } else if (baseType != null && result.getWildcardProcess() != SchemaAttributeModel.NONE) {
+            SchemaAttributeModel baseModel = baseType.getAttributeModel();
+            QNameSet baseSet = baseModel.getWildcardSet();
+            if (baseSet == null || baseModel.getWildcardProcess() == SchemaAttributeModel.NONE) {
+                state.error(XmlErrorCodes.COMPLEX_TYPE_RESTRICTION$BASE_HAS_ATTR_WILDCARD, null, source.location);
+                result.setWildcardSet(null);
+                result.setWildcardProcess(SchemaAttributeModel.NONE);
+            } else if (!baseSet.containsAll(result.getWildcardSet())) {
+                state.error(XmlErrorCodes.COMPLEX_TYPE_RESTRICTION$ATTR_WILDCARD_SUBSET,
+                    new Object[]{source.nsText}, source.location);
+                result.setWildcardSet(null);
+                result.setWildcardProcess(SchemaAttributeModel.NONE);
+            }
+        }
+    }
+
+    /**
+     * Where the complete attribute wildcard of a type comes from, for error reporting:
+     * the type's own anyAttribute if it has one, otherwise the first attribute group wildcard.
+     */
+    private static final class WildcardSource {
+        XmlObject location;
+        String nsText;
+    }
+
+    /**
+     * @param source null for the pre-6.0.0 wildcard handling
+     *               ({@link XmlOptions#setCompileLegacyAttributeWildcards()}), otherwise
+     *               collects where the complete wildcard comes from
+     */
+    private static void translateAttributeModel(XmlObject parseTree,
+                                                String targetNamespace, boolean chameleon, String formDefault,
+                                                List<SchemaType> anonymousTypes, SchemaType outerType,
+                                                Set<QName> seenAttributes, SchemaAttributeModelImpl result,
+                                                SchemaType baseType, boolean extension,
+                                                SchemaAttributeGroupImpl redefinitionFor,
+                                                WildcardSource source) {
+        StscState state = StscState.get();
+        boolean legacy = source == null;
+        // the top-level call is for the type itself, nested calls are for its attribute groups
+        boolean nested = seenAttributes != null;
         if (seenAttributes == null) {
             seenAttributes = new HashSet<>();
         }
@@ -918,27 +977,49 @@ public class StscComplexTypeResolver {
                         }
                         QNameSet wcset = QNameSet.forWildcardNamespaceString(nsText, targetNamespace);
 
-                        if (baseModel != null && !extension) {
-                            if (baseModel.getWildcardSet() == null) {
-                                state.error(XmlErrorCodes.COMPLEX_TYPE_RESTRICTION$BASE_HAS_ATTR_WILDCARD, null, xsdwc);
-                                continue; // ignore the extra wildcard
-                            } else if (!baseModel.getWildcardSet().containsAll(wcset)) {
-                                state.error(XmlErrorCodes.COMPLEX_TYPE_RESTRICTION$ATTR_WILDCARD_SUBSET,
-                                    new Object[]{nsText}, xsdwc);
-                                continue; // ignore the restriction
+                        int wcprocess = translateWildcardProcess(xsdwc.xgetProcessContents());
+
+                        if (legacy) {
+                            // pre-6.0.0: each wildcard of a restriction is checked against the
+                            // base on its own, and an extension unions all the wildcards
+                            if (baseModel != null && !extension) {
+                                if (baseModel.getWildcardSet() == null) {
+                                    state.error(XmlErrorCodes.COMPLEX_TYPE_RESTRICTION$BASE_HAS_ATTR_WILDCARD, null, xsdwc);
+                                    continue; // ignore the extra wildcard
+                                } else if (!baseModel.getWildcardSet().containsAll(wcset)) {
+                                    state.error(XmlErrorCodes.COMPLEX_TYPE_RESTRICTION$ATTR_WILDCARD_SUBSET,
+                                        new Object[]{nsText}, xsdwc);
+                                    continue; // ignore the restriction
+                                }
                             }
+                            if (result.getWildcardProcess() == SchemaAttributeModel.NONE) {
+                                result.setWildcardSet(wcset);
+                                result.setWildcardProcess(wcprocess);
+                            } else if (extension) {
+                                result.setWildcardSet(wcset.union(result.getWildcardSet()));
+                                result.setWildcardProcess(wcprocess);
+                            } else {
+                                result.setWildcardSet(wcset.intersect(result.getWildcardSet()));
+                                // keep old process
+                            }
+                            break;
                         }
 
-                        int wcprocess = translateWildcardProcess(xsdwc.xgetProcessContents());
                         if (result.getWildcardProcess() == SchemaAttributeModel.NONE) {
                             result.setWildcardSet(wcset);
-                            result.setWildcardProcess(wcprocess);
                         } else {
                             result.setWildcardSet(wcset.intersect(result.getWildcardSet()));
-                            if (extension) {
-                                result.setWildcardProcess(wcprocess);
-                            }
-                            // else keep old process
+                        }
+                        // processContents comes from the type's own anyAttribute, or else from
+                        // the first attribute group wildcard
+                        if (!nested) {
+                            result.setWildcardProcess(wcprocess);
+                            source.location = xsdwc;
+                            source.nsText = nsText;
+                        } else if (source.location == null) {
+                            result.setWildcardProcess(wcprocess);
+                            source.location = xsdwc;
+                            source.nsText = nsText;
                         }
                         break;
                     }
@@ -987,7 +1068,7 @@ public class StscComplexTypeResolver {
                         translateAttributeModel(group.getParseObject(), subTargetNamespace, chameleon,
                             group.getFormDefault(),
                             anonymousTypes, outerType, seenAttributes, result, baseType,
-                            extension, nestedRedefinitionFor);
+                            extension, nestedRedefinitionFor, source);
                         state.finishProcessing(group);
                         break;
                     }
@@ -997,19 +1078,12 @@ public class StscComplexTypeResolver {
                 }
             }
         }
-        // If this is restriction and no wildcard was present, then
-        // we have to erase the inherited wildcards
-        if (!extension && !seenWildcard) {
+        // pre-6.0.0: if this is restriction and no wildcard was present, then
+        // we have to erase the inherited wildcards. This also runs for each
+        // attribute group, so a restriction drops the wildcards of its groups
+        if (legacy && !extension && !seenWildcard) {
             result.setWildcardSet(null);
             result.setWildcardProcess(SchemaAttributeModel.NONE);
-        }
-        if (baseWildcardProcess != SchemaAttributeModel.NONE) {
-            if (result.getWildcardProcess() == SchemaAttributeModel.NONE) {
-                result.setWildcardSet(baseWildcardSet);
-                result.setWildcardProcess(baseWildcardProcess);
-            } else {
-                result.setWildcardSet(result.getWildcardSet().union(baseWildcardSet));
-            }
         }
     }
 
