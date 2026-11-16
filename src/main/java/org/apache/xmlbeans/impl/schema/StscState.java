@@ -1408,7 +1408,13 @@ public class StscState {
             try {
                 URI relative = _baseURI.relativize(new URI(uri));
                 if (!relative.isAbsolute()) {
-                    return relative.toString();
+                    String rel = relative.toString();
+                    String path = relative.getRawPath();
+                    if (!forSavedFilename || rel.equals(path)) {
+                        return rel;
+                    }
+                    // the query and fragment are not normalized and may hold '/' and '..'
+                    return path + QNameHelper.hexsafe(rel.substring(path.length()));
                 } else {
                     uri = relative.toString();
                 }
