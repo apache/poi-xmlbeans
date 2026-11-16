@@ -816,18 +816,14 @@ Set<File> xsdDirs(File parent) {
     return xsdDirs
 }
 
+// The Android API signature only makes sense for code we ship, so the tests (which use
+// JDK-only APIs such as com.sun.net.httpserver and ClassLoader.getPlatformClassLoader)
+// are not checked.
 animalsniffer {
-    //sourceSets = [sourceSets.main]
+    sourceSets = [sourceSets.main]
     ignore 'javax.xml.stream.*'
     ignore 'javax.xml.namespace.*'
     // only used by the maven plugin, which never runs on Android
     ignore 'javax.xml.catalog.*'
-}
-
-// The Android API signature only makes sense for code we ship. ParseUrlRedirectTest
-// runs a loopback com.sun.net.httpserver server, which is JDK-only and never leaves
-// the test source set.
-animalsnifferTest {
-    exclude '**/ParseUrlRedirectTest*'
 }
 
