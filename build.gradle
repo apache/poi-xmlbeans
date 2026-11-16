@@ -184,9 +184,11 @@ wrapper {
     gradleVersion = '8.14.5'
 }
 
-def extCP = files(configurations.testCompileClasspath + sourceSets.main.output.files + sourceSets.main.resources.srcDirs)
+def extCP = files(configurations.testCompileClasspath, sourceSets.main.output, sourceSets.main.resources.srcDirs)
 testSchemas.each {
-    schemaGenTask(it.name, 'test', (it.name =~ /sEXT/ ? extCP : configurations.genresources), it.dir, "${it.path}:${it.name}")
+    def task = schemaGenTask(it.name, 'test', (it.name =~ /sEXT/ ? extCP : configurations.genresources), it.dir, "${it.path}:${it.name}")
+    // genresources holds the schema compiler classes that bootstrapMigrate builds from src/main/java
+    task.dependsOn 'bootstrapMigrate'
 }
 
 // https://discuss.gradle.org/t/passing-arguments-to-a-task/8427
@@ -201,6 +203,8 @@ def schemaGenTask(String baseName, String mainTest, FileCollection beansPath, St
         FileTree inputFiles = fileTree(dir: xsdDir, includes: map.keySet().collect{ it.split(' ')}.flatten())
 
         it.inputs.files(inputFiles)
+        // the schema compiler itself: without it, a change to the compiler reuses stale cached output
+        it.inputs.files(beansPath).withPropertyName('schemaCompilerClasspath').withNormalizer(ClasspathNormalizer)
         it.outputs.dir(srcDir)
         it.outputs.dir(rscDir)
         it.outputs.cacheIf { true }
