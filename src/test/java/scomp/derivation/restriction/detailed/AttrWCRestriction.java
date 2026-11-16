@@ -58,7 +58,9 @@ public class AttrWCRestriction {
      * should be able to replace the any w/ local...
      * attrs not in target ns are therefore illegal
      * Skip to strict
-     * No namespace should be OK, any other namespace should be notOK
+     * A no-namespace attribute matches the wildcard, but the restriction's own anyAttribute is strict
+     * (XML Schema 1.0 3.4.2) and no global no-namespace attribute is declared, so it is not resolved.
+     * Any other namespace does not match the wildcard at all.
      */
     @Test
     void testAny2LocalStrict() throws Throwable {
@@ -68,9 +70,12 @@ public class AttrWCRestriction {
             " xmlns:foo=\"http://xbean/scomp/derivation/AttributeWCRestriction\"" +
             " testattribute=\"XBean\"/>";
         Any2LocalDocument doc = Any2LocalDocument.Factory.parse(input);
-        assertTrue(doc.validate(validateOptions));
+        assertFalse(doc.validate(validateOptions));
+        assertArrayEquals(new String[]{XmlErrorCodes.ASSESS_ATTR_SCHEMA_VALID$NOT_RESOLVED},
+            getErrorCodes(validateOptions));
 
         //a diff ns is not OK
+        validateOptions = createOptions();
         input =
             "<foo:Any2Local " +
             " xmlns:foo=\"http://xbean/scomp/derivation/AttributeWCRestriction\"" +
