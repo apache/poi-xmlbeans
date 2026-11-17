@@ -432,7 +432,7 @@ public class SchemaTypeVisitorImpl implements TypeStoreVisitor
                     }
                     if (skipped < _top._childCount)
                     {
-                        if (_top._curCount < _top._curMin)
+                        if (_top._processedChildCount != 0 || _top._curCount < _top._curMin)
                             return notValid();
                         break minmax;
                     }
