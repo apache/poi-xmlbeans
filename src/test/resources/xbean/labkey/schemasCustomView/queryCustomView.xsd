@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2004 The Apache Software Foundation
+
+     Licensed under the Apache License, Version 2.0 (the "License");
+     you may not use this file except in compliance with the License.
+     You may obtain a copy of the License at
+
+         http://www.apache.org/licenses/LICENSE-2.0
+
+     Unless required by applicable law or agreed to in writing, software
+     distributed under the License is distributed on an "AS IS" BASIS,
+     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     See the License for the specific language governing permissions and
+     limitations under the License. -->
+<xsd:schema
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+        xmlns:cv="http://labkey.org/data/xml/queryCustomView"
+        targetNamespace="http://labkey.org/data/xml/queryCustomView"
+        elementFormDefault="qualified" attributeFormDefault="unqualified">
+    <xsd:annotation>
+        <xsd:documentation xml:lang="en">File-based Query Custom View Definition</xsd:documentation>
+    </xsd:annotation>
+
+    <xsd:element name="customView" type="cv:customViewType"/>
+
+    <xsd:complexType name="customViewType">
+        <xsd:all>
+            <xsd:element name="columns" type="cv:columnsType" minOccurs="0"/>
+            <xsd:element name="filters" type="cv:filtersType" minOccurs="0"/>
+            <xsd:element name="sorts" type="cv:sortsType" minOccurs="0"/>
+            <xsd:element name="aggregates" type="cv:aggregatesType" minOccurs="0"/> <!--deprecated, use analyticsProviders-->
+            <xsd:element name="analyticsProviders" type="cv:analyticsProvidersType" minOccurs="0"/>
+        </xsd:all>
+        <xsd:attribute name="name" type="xsd:string"/>
+        <xsd:attribute name="schema" type="xsd:string"/>
+        <xsd:attribute name="query" type="xsd:string"/>
+        <xsd:attribute name="hidden" type="xsd:boolean" default="0"/>
+        <xsd:attribute name="canInherit" type="xsd:boolean" default="0"/>
+        <xsd:attribute name="canOverride" type="xsd:boolean" default="0"/>
+        <xsd:attribute name="customIconUrl" type="xsd:string"/>
+        <xsd:attribute name="containerFilter" type="cv:containerFilterType" use="optional" />
+        <xsd:attribute name="label" type="xsd:string" use="optional" />
+        <xsd:attribute name="showInDataViews" type="xsd:boolean" default="0"/>
+        <xsd:attribute name="category" type="xsd:string"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="columnsType">
+        <xsd:sequence>
+            <xsd:element name="column" type="cv:columnType" minOccurs="1" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="columnType">
+        <xsd:sequence>
+            <xsd:element name="properties" type="cv:propertiesType" minOccurs="0"/>
+        </xsd:sequence>
+        <xsd:attribute name="name" type="xsd:string"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="propertiesType">
+        <xsd:sequence>
+            <xsd:element name="property" type="cv:propertyType" minOccurs="1" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="propertyType">
+        <xsd:attribute name="name" type="cv:propertyName"/>
+        <xsd:attribute name="value" type="xsd:string"/>
+    </xsd:complexType>
+
+    <xsd:simpleType name="propertyName">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="columnTitle"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:complexType name="filtersType">
+        <xsd:group ref="cv:filtersGroup" minOccurs="0" maxOccurs="unbounded"/>
+    </xsd:complexType>
+
+    <xsd:group name="filtersGroup">
+        <xsd:choice>
+            <xsd:element name="filter" type="cv:filterType" minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="where" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+        </xsd:choice>
+    </xsd:group>
+
+    <xsd:complexType name="namedFiltersType">
+        <xsd:complexContent>
+            <xsd:extension base="cv:filtersType">
+                <xsd:attribute name="name" use="required" type="xsd:ID"/>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="localOrRefFiltersType">
+        <xsd:group ref="cv:filtersGroup" minOccurs="0" maxOccurs="unbounded"/>
+        <xsd:attribute name="ref" type="xsd:IDREF"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="filterType">
+        <xsd:attribute name="column" type="xsd:string"/>
+        <xsd:attribute name="operator" type="cv:operatorType"/>
+        <xsd:attribute name="value" type="xsd:string"/>
+    </xsd:complexType>
+
+    <xsd:simpleType name="operatorType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="eq"/>
+            <xsd:enumeration value="dateeq"/>
+            <xsd:enumeration value="dateneq"/>
+            <xsd:enumeration value="datelt"/>
+            <xsd:enumeration value="datelte"/>
+            <xsd:enumeration value="dategt"/>
+            <xsd:enumeration value="dategte"/> 
+            <xsd:enumeration value="neqornull"/>
+            <xsd:enumeration value="neq"/>
+            <xsd:enumeration value="isblank"/>
+            <xsd:enumeration value="isnonblank"/>
+            <xsd:enumeration value="gt"/>
+            <xsd:enumeration value="lt"/>
+            <xsd:enumeration value="gte"/>
+            <xsd:enumeration value="lte"/>
+            <xsd:enumeration value="between"/>
+            <xsd:enumeration value="notbetween"/>
+            <xsd:enumeration value="contains"/>
+            <xsd:enumeration value="doesnotcontain"/>
+            <xsd:enumeration value="doesnotstartwith"/>
+            <xsd:enumeration value="startswith"/>
+            <xsd:enumeration value="in"/>
+            <xsd:enumeration value="hasmvvalue"/>
+            <xsd:enumeration value="nomvvalue"/>
+            <xsd:enumeration value="inornull"/>
+            <xsd:enumeration value="notin"/>
+            <xsd:enumeration value="notinornull"/>
+            <xsd:enumeration value="containsoneof"/>
+            <xsd:enumeration value="containsnoneof"/>
+            <xsd:enumeration value="memberof"/>
+            <xsd:enumeration value="exp:childof"/>
+            <xsd:enumeration value="exp:lineageof"/>
+            <xsd:enumeration value="exp:parentof"/>
+            <xsd:enumeration value="concept:subclassof"/>
+            <xsd:enumeration value="concept:insubtree"/>
+            <xsd:enumeration value="concept:notinsubtree"/>
+            <xsd:enumeration value="q"/>
+            <xsd:enumeration value="where"/>
+            <xsd:enumeration value="inexpancestorsof"/>
+            <xsd:enumeration value="inexpdescendantsof"/>
+            <xsd:enumeration value="notinexpancestorsof"/>
+            <xsd:enumeration value="notinexpdescendantsof"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:complexType name="sortsType">
+        <xsd:sequence>
+            <xsd:element name="sort" type="cv:sortType" minOccurs="1" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="sortType">
+        <xsd:attribute name="column" type="xsd:string"/>
+        <xsd:attribute name="descending" type="xsd:boolean" default="0"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="aggregatesType">
+        <xsd:sequence>
+            <xsd:element name="aggregate" type="cv:aggregateType" minOccurs="1" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="aggregateType">
+        <xsd:attribute name="column" type="xsd:string"/>
+        <xsd:attribute name="type" type="xsd:string"/>
+        <xsd:attribute name="label" type="xsd:string" use="optional" />
+    </xsd:complexType>
+
+    <xsd:complexType name="analyticsProvidersType">
+        <xsd:sequence>
+            <xsd:element name="analyticsProvider" type="cv:analyticsProviderType" minOccurs="1" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="analyticsProviderType">
+        <xsd:attribute name="column" type="xsd:string"/>
+        <xsd:attribute name="type" type="xsd:string" />
+        <xsd:attribute name="label" type="xsd:string" use="optional" />
+    </xsd:complexType>
+    
+    <xsd:simpleType name="containerFilterType">
+      <xsd:restriction base="xsd:string">
+        <xsd:enumeration value="Current">
+            <xsd:annotation><xsd:documentation>The current container.</xsd:documentation></xsd:annotation>
+        </xsd:enumeration>
+        <xsd:enumeration value="CurrentWithUser">
+            <xsd:annotation><xsd:documentation>Current folder with permissions applied to user.</xsd:documentation></xsd:annotation>
+        </xsd:enumeration>
+        <xsd:enumeration value="CurrentAndFirstChildren">
+            <xsd:annotation><xsd:documentation>Current folder and first children that are not workbooks.</xsd:documentation></xsd:annotation>
+        </xsd:enumeration>
+        <xsd:enumeration value="CurrentAndSubfolders">
+            <xsd:annotation><xsd:documentation>The current container and any folders it contains.</xsd:documentation></xsd:annotation>
+        </xsd:enumeration>
+        <xsd:enumeration value="CurrentAndSiblings">
+            <xsd:annotation><xsd:documentation>Current folder and siblings.</xsd:documentation></xsd:annotation>
+        </xsd:enumeration>
+        <xsd:enumeration value="CurrentOrParentAndWorkbooks">
+            <xsd:annotation><xsd:documentation>Current folder and/or parent if the current folder is a workbook, plus all workbooks in this series.</xsd:documentation></xsd:annotation>
+        </xsd:enumeration>
+        <xsd:enumeration value="CurrentPlusProject">
+            <xsd:annotation><xsd:documentation>The current container and the project folder container it.</xsd:documentation></xsd:annotation>
+        </xsd:enumeration>
+        <xsd:enumeration value="CurrentAndParents">
+            <xsd:annotation><xsd:documentation>The current container and all of its parent containers.</xsd:documentation></xsd:annotation>
+        </xsd:enumeration>
+        <xsd:enumeration value="CurrentPlusProjectAndShared">
+            <xsd:annotation><xsd:documentation>The current container, its project folder and all shared folders.</xsd:documentation></xsd:annotation>
+        </xsd:enumeration>
+        <xsd:enumeration value="AssayLocation">
+            <xsd:annotation><xsd:documentation>Current folder, project, and Shared project.</xsd:documentation></xsd:annotation>
+        </xsd:enumeration>
+        <xsd:enumeration value="WorkbookAndParent">
+            <xsd:annotation><xsd:documentation>Current workbook and parent.</xsd:documentation></xsd:annotation>
+        </xsd:enumeration>
+        <xsd:enumeration value="StudyAndSourceStudy">
+            <xsd:annotation><xsd:documentation>Current study and its source/parent study.</xsd:documentation></xsd:annotation>
+        </xsd:enumeration>
+        <xsd:enumeration value="AllFolders">
+            <xsd:annotation><xsd:documentation>All folders to which the user has permission.</xsd:documentation></xsd:annotation>
+        </xsd:enumeration>
+      </xsd:restriction>
+    </xsd:simpleType>
+
+</xsd:schema>
+
