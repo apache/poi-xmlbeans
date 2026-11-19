@@ -1055,10 +1055,30 @@ public final class Validator
                 return null;
             }
 
-            XmlObject val = type.newValue(value);
-            XmlObject def = type.newValue(fixedValue);
+            // Comparing the instance value against the fixed value may have to
+            // resolve QName or NOTATION prefixes in the instance value, so push
+            // the namespace context the same way the enumeration comparisons do.
+            // The fixed value was already resolved against the schema at compile
+            // time, so compare against that compiled value rather than reparsing
+            // its lexical form (whose prefixes belong to the schema) against the
+            // instance here.
+            boolean valueEquals;
 
-            if (!val.valueEquals(def)) {
+            NamespaceContext.push(new NamespaceContext(event));
+
+            try {
+                XmlObject val = type.newValue(value);
+                XmlObject def = field.getDefaultValue();
+
+                valueEquals =
+                    val.valueEquals(def == null ? type.newValue(fixedValue) : def);
+            } catch (XmlValueOutOfRangeException e) {
+                valueEquals = false;
+            } finally {
+                NamespaceContext.pop();
+            }
+
+            if (!valueEquals) {
                 // TODO (dutta) - make this more verbose
                 if (field.isAttribute()) {
                     // KHK: check for is cvc-complex-type.3.1 or cvc-au
