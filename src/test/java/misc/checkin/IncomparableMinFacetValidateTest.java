@@ -41,6 +41,8 @@ public class IncomparableMinFacetValidateTest {
     private static final String DT_INCOMPARABLE = "2000-01-01T12:00:00";
     private static final String DUR_BOUND = "P30D";
     private static final String DUR_INCOMPARABLE = "P1M";
+    // NaN is equal to itself but incomparable with every other float or double
+    private static final String NUM_BOUND = "0";
 
     private static final String[] FACETS = {
         "minInclusive", "minExclusive", "maxInclusive", "maxExclusive"
@@ -64,6 +66,8 @@ public class IncomparableMinFacetValidateTest {
         for (String facet : FACETS) {
             sb.append(element("dt-" + facet, "dateTime", facet, DT_BOUND));
             sb.append(element("dur-" + facet, "duration", facet, DUR_BOUND));
+            sb.append(element("flt-" + facet, "float", facet, NUM_BOUND));
+            sb.append(element("dbl-" + facet, "double", facet, NUM_BOUND));
         }
         return sb.append("</xs:schema>").toString();
     }
@@ -111,6 +115,14 @@ public class IncomparableMinFacetValidateTest {
     }
 
     @Test
+    void nanFailsEveryBound() throws Exception {
+        for (String facet : FACETS) {
+            assertInvalid("flt-" + facet, "NaN");
+            assertInvalid("dbl-" + facet, "NaN");
+        }
+    }
+
+    @Test
     void comparableDateTimeStillChecked() throws Exception {
         // equal to the bound
         assertValid("dt-minInclusive", "2000-01-01T12:00:00Z");
@@ -132,5 +144,17 @@ public class IncomparableMinFacetValidateTest {
         assertValid("dur-minExclusive", "P2M");
         assertInvalid("dur-minInclusive", "P27D");
         assertInvalid("dur-minExclusive", "P27D");
+    }
+
+    @Test
+    void comparableFloatAndDoubleStillChecked() throws Exception {
+        for (String type : new String[]{"flt-", "dbl-"}) {
+            assertValid(type + "minInclusive", "0");
+            assertInvalid(type + "minExclusive", "0");
+            assertValid(type + "minExclusive", "INF");
+            assertInvalid(type + "minInclusive", "-INF");
+            assertValid(type + "maxInclusive", "-INF");
+            assertInvalid(type + "maxExclusive", "INF");
+        }
     }
 }

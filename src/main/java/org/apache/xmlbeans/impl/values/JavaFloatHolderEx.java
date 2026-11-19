@@ -63,28 +63,28 @@ public abstract class JavaFloatHolderEx extends JavaFloatHolder {
         float f;
 
         if ((x = sType.getFacet(SchemaType.FACET_MIN_EXCLUSIVE)) != null) {
-            if (compare(v, f = ((XmlObjectBase) x).getFloatValue()) <= 0) {
+            if (compare(v, f = ((XmlObjectBase) x).getFloatValue()) <= 0 || incomparable(v, f)) {
                 context.invalid(XmlErrorCodes.DATATYPE_MIN_EXCLUSIVE_VALID,
                     new Object[]{"float", v, f, QNameHelper.readable(sType)});
             }
         }
 
         if ((x = sType.getFacet(SchemaType.FACET_MIN_INCLUSIVE)) != null) {
-            if (compare(v, f = ((XmlObjectBase) x).getFloatValue()) < 0) {
+            if (compare(v, f = ((XmlObjectBase) x).getFloatValue()) < 0 || incomparable(v, f)) {
                 context.invalid(XmlErrorCodes.DATATYPE_MIN_INCLUSIVE_VALID,
                     new Object[]{"float", v, f, QNameHelper.readable(sType)});
             }
         }
 
         if ((x = sType.getFacet(SchemaType.FACET_MAX_INCLUSIVE)) != null) {
-            if (compare(v, f = ((XmlObjectBase) x).getFloatValue()) > 0) {
+            if (compare(v, f = ((XmlObjectBase) x).getFloatValue()) > 0 || incomparable(v, f)) {
                 context.invalid(XmlErrorCodes.DATATYPE_MAX_INCLUSIVE_VALID,
                     new Object[]{"float", v, f, QNameHelper.readable(sType)});
             }
         }
 
         if ((x = sType.getFacet(SchemaType.FACET_MAX_EXCLUSIVE)) != null) {
-            if (compare(v, f = ((XmlObjectBase) x).getFloatValue()) >= 0) {
+            if (compare(v, f = ((XmlObjectBase) x).getFloatValue()) >= 0 || incomparable(v, f)) {
                 context.invalid(XmlErrorCodes.DATATYPE_MAX_EXCLUSIVE_VALID,
                     new Object[]{"float", v, f, QNameHelper.readable(sType)});
             }
@@ -100,6 +100,12 @@ public abstract class JavaFloatHolderEx extends JavaFloatHolder {
             context.invalid(XmlErrorCodes.DATATYPE_ENUM_VALID,
                 new Object[]{"float", v, QNameHelper.readable(sType)});
         }
+    }
+
+    // NaN is equal to itself but neither less than nor greater than any other
+    // value, so it satisfies none of the bound facets of a non-NaN bound
+    private static boolean incomparable(float v, float bound) {
+        return Float.isNaN(v) != Float.isNaN(bound);
     }
 
     protected void validate_simpleval(String lexical, ValidationContext ctx) {
