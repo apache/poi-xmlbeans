@@ -95,6 +95,7 @@ public class XmlUnionImpl extends XmlObjectBase implements XmlAnySimpleType {
             pushed = true;
         }
         try {
+            outer:
             for (boolean validate = true; validate || !_validateOnSet(); validate = false) {
                 for (SchemaType member : members) {
                     // From the point of view of the following call, "this" is a generic
@@ -103,9 +104,11 @@ public class XmlUnionImpl extends XmlObjectBase implements XmlAnySimpleType {
                     try {
                         XmlAnySimpleType newval = ((SchemaTypeImpl) member).newValue(s, validate);
 
-                        // now we need to check against (enuemration) restrictions
+                        // now we need to check against (enuemration) restrictions.
+                        // The first member that accepts the lexical value gives the
+                        // union its value, so a later member must not be tried instead.
                         if (!check(newval, _schemaType)) {
-                            continue;
+                            break outer;
                         }
 
                         // found one that works!
