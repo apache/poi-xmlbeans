@@ -248,6 +248,83 @@ public class IdentityConstraint {
         return st.isSimpleType() || st.getContentType() == SchemaType.SIMPLE_CONTENT;
     }
 
+    /**
+     * Return the values of the given lexical value that belong in the ID/IDREF table
+     * for target (xs:ID or xs:IDREF): the value itself when its type is derived from
+     * target, and otherwise the items of a list and the value of the union member that
+     * accepted it, recursively (XML Schema 1.1 Part 1, 3.17.5.2). The values are built
+     * from target so that ID and IDREF values compare equal.
+     */
+    private static List<XmlAnySimpleType> idTableValues(Event e, SchemaType st, String value, SchemaType target) {
+        if (!hasSimpleContent(st)) {
+            return Collections.emptyList();
+        }
+
+        st = getSimpleType(st);
+
+        if (!mayHoldIdTableValues(st, target)) {
+            return Collections.emptyList();
+        }
+
+        XmlObject o = newValue(target.isAssignableFrom(st) ? target : st, value, e);
+
+        // Ignore invalid values. Assume that validation catches these
+        if (o == null) {
+            return Collections.emptyList();
+        }
+
+        List<XmlAnySimpleType> result = new ArrayList<>(1);
+        addIdTableValues((XmlAnySimpleType) o, target, result);
+        return result;
+    }
+
+    private static void addIdTableValues(XmlAnySimpleType v, SchemaType target, List<XmlAnySimpleType> result) {
+        // the member type that accepted a union value, or the list type of a list value
+        SchemaType st = ((SimpleValue) v).instanceType();
+
+        if (st == null) {
+            return;
+        }
+
+        if (st.getSimpleVariety() == SchemaType.LIST) {
+            for (XmlAnySimpleType item : ((SimpleValue) v).xgetListValue()) {
+                if (item != null) {
+                    addIdTableValues(item, target, result);
+                }
+            }
+        } else if (target.isAssignableFrom(st)) {
+            String value = v.getStringValue();
+
+            // a value that is not an NCName is not an ID or IDREF: validation reports it,
+            // or it belongs to another member of a union
+            if (!XMLChar.isValidNCName(value)) {
+                return;
+            }
+
+            XmlObject o = v.schemaType() == target ? v : newValue(target, value);
+
+            if (o != null) {
+                result.add((XmlAnySimpleType) o);
+            }
+        }
+    }
+
+    private static boolean mayHoldIdTableValues(SchemaType st, SchemaType target) {
+        switch (st.getSimpleVariety()) {
+            case SchemaType.LIST:
+                return mayHoldIdTableValues(st.getListItemType(), target);
+            case SchemaType.UNION:
+                for (SchemaType member : st.getUnionMemberTypes()) {
+                    if (mayHoldIdTableValues(member, target)) {
+                        return true;
+                    }
+                }
+                return false;
+            default:
+                return target.isAssignableFrom(st);
+        }
+    }
+
     public abstract class ConstraintState {
         ConstraintState _next;
 
@@ -585,19 +662,12 @@ public class IdentityConstraint {
                 return;
             }
 
-            if (XmlID.type.isAssignableFrom(st)) {
+            for (XmlAnySimpleType o : idTableValues(e, st, value, XmlID.type)) {
                 XmlObjectList xmlValue = new XmlObjectList(1);
-                XmlObject o = newValue(XmlID.type, value);
-
-                // Ignore invalid values. Assume that validation catches these
-                if (o == null) {
-                    return;
-                }
-
                 xmlValue.set(o, 0);
 
                 if (_values.contains(xmlValue)) {
-                    emitError(e, XmlErrorCodes.ID_VALID$DUPLICATE, new Object[]{value});
+                    emitError(e, XmlErrorCodes.ID_VALID$DUPLICATE, new Object[]{o.getStringValue()});
                 } else {
                     _values.add(xmlValue);
                 }
@@ -634,32 +704,11 @@ public class IdentityConstraint {
                 // ignore invalid values. Assume that validation catches these
                 return;
             }
-            if (XmlIDREFS.type.isAssignableFrom(st)) {
-                XmlIDREFS lv = (XmlIDREFS) newValue(XmlIDREFS.type, value);
 
-                // Ignore invalid values. Assume that validation catches these
-                if (lv == null) {
-                    return;
-                }
-
-                List<? extends XmlAnySimpleType> l = lv.xgetListValue();
-
-                // Add one value for each idref in the list
-                for (XmlAnySimpleType o : l) {
-                    XmlObjectList xmlValue = new XmlObjectList(1);
-                    xmlValue.set(o, 0);
-                    _values.add(xmlValue);
-                }
-            } else if (XmlIDREF.type.isAssignableFrom(st)) {
+            // Add one value for each idref, including each item of an idref list
+            for (XmlAnySimpleType o : idTableValues(e, st, value, XmlIDREF.type)) {
                 XmlObjectList xmlValue = new XmlObjectList(1);
-                XmlIDREF idref = (XmlIDREF) st.newValue(value);
-
-                // Ignore invalid values. Assume that validation catches these
-                if (idref == null) {
-                    return;
-                }
-
-                xmlValue.set(idref, 0);
+                xmlValue.set(o, 0);
                 _values.add(xmlValue);
             }
         }
