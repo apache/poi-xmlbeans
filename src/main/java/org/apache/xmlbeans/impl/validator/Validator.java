@@ -1051,24 +1051,32 @@ public final class Validator
                 XmlWhitespace.collapse(
                     field.getDefaultText(), type.getWhiteSpaceRule());
 
-            if (!validateSimpleType(type, fixedValue, event)) {
+            // The fixed value was already resolved against the schema at compile
+            // time, so compare against that cooked value. Reparsing its lexical
+            // form here would resolve the schema's prefixes against the instance,
+            // which is also why only the fallback that has to reparse it needs the
+            // lexical check.
+            XmlObject def;
+
+            try {
+                def = field.getDefaultValue();
+            } catch (XmlValueOutOfRangeException e) {
+                def = null;
+            }
+
+            if (def == null && !validateSimpleType(type, fixedValue, event)) {
                 return null;
             }
 
             // Comparing the instance value against the fixed value may have to
             // resolve QName or NOTATION prefixes in the instance value, so push
             // the namespace context the same way the enumeration comparisons do.
-            // The fixed value was already resolved against the schema at compile
-            // time, so compare against that compiled value rather than reparsing
-            // its lexical form (whose prefixes belong to the schema) against the
-            // instance here.
             boolean valueEquals;
 
             NamespaceContext.push(new NamespaceContext(event));
 
             try {
                 XmlObject val = type.newValue(value);
-                XmlObject def = field.getDefaultValue();
 
                 valueEquals =
                     val.valueEquals(def == null ? type.newValue(fixedValue) : def);

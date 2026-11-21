@@ -18,7 +18,6 @@ package misc.checkin;
 
 import org.apache.xmlbeans.SchemaTypeLoader;
 import org.apache.xmlbeans.XmlBeans;
-import org.apache.xmlbeans.XmlObject;
 import org.apache.xmlbeans.impl.xb.xsdschema.SchemaDocument;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -28,9 +27,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class FixedQNameValidateTest {
 
+    private static final String XSI = "xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'";
+
     private static final String XSD =
         "<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema' xmlns:t='urn:t' xmlns:p='urn:p' " +
         "targetNamespace='urn:t' elementFormDefault='qualified'>" +
+        "  <xs:simpleType name='qname'><xs:restriction base='xs:QName'/></xs:simpleType>" +
         "  <xs:element name='qn' type='xs:QName' fixed='p:foo'/>" +
         "  <xs:element name='withAttr'>" +
         "    <xs:complexType><xs:attribute name='a' type='xs:QName' fixed='p:foo'/></xs:complexType>" +
@@ -69,9 +71,23 @@ public class FixedQNameValidateTest {
 
     @Test
     void fixedQNameComparedByValueNotPrefix() throws Exception {
-        // same namespace reached through a different instance prefix still matches
-        assertTrue(validates("<t:qn xmlns:t='urn:t' xmlns:p='urn:p' xmlns:z='urn:p'>z:foo</t:qn>"));
+        // the schema's own prefix is never looked up in the instance: the fixed
+        // namespace reached through a different instance prefix still matches,
+        // with 'p' undeclared on the instance
+        assertTrue(validates("<t:qn xmlns:t='urn:t' xmlns:z='urn:p'>z:foo</t:qn>"));
+        assertTrue(validates("<t:withAttr xmlns:t='urn:t' xmlns:z='urn:p' a='z:foo'/>"));
         // rebinding the prefix to another namespace does not match the fixed value
         assertFalse(validates("<t:qn xmlns:t='urn:t' xmlns:p='urn:other'>p:foo</t:qn>"));
+    }
+
+    @Test
+    void fixedQNameComparedAcrossXsiType() throws Exception {
+        // xsi:type narrows the instance type, so the two sides of the comparison
+        // come from different types: the compiled fixed value keeps the field's
+        // declared xs:QName while the instance value is built from t:qname
+        assertTrue(validates(
+            "<t:qn xmlns:t='urn:t' " + XSI + " xmlns:z='urn:p' xsi:type='t:qname'>z:foo</t:qn>"));
+        assertFalse(validates(
+            "<t:qn xmlns:t='urn:t' " + XSI + " xmlns:z='urn:p' xsi:type='t:qname'>z:bar</t:qn>"));
     }
 }
