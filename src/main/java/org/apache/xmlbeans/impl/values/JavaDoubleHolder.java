@@ -129,7 +129,12 @@ public abstract class JavaDoubleHolder extends XmlObjectBase {
         if (thisValue > thatValue) {
             return 1;
         }
+        if (thisValue == thatValue) {
+            // the value space has a single zero, so -0 and 0 are the same value
+            return 0;
+        }
 
+        // only NaN is left here; it equals itself and no other value
         long thisBits = Double.doubleToLongBits(thisValue);
         long thatBits = Double.doubleToLongBits(thatValue);
 
@@ -141,7 +146,8 @@ public abstract class JavaDoubleHolder extends XmlObjectBase {
     }
 
     protected int value_hash_code() {
-        long v = Double.doubleToLongBits(_value);
+        // -0 and 0 are the same value, so they have to hash the same
+        long v = Double.doubleToLongBits(_value == 0.0 ? 0.0 : _value);
         return (int) ((v >> 32) * 19 + v);
     }
 }

@@ -129,7 +129,12 @@ public abstract class JavaFloatHolder extends XmlObjectBase {
         if (thisValue > thatValue) {
             return 1;
         }
+        if (thisValue == thatValue) {
+            // the value space has a single zero, so -0 and 0 are the same value
+            return 0;
+        }
 
+        // only NaN is left here; it equals itself and no other value
         int thisBits = Float.floatToIntBits(thisValue);
         int thatBits = Float.floatToIntBits(thatValue);
 
@@ -141,6 +146,7 @@ public abstract class JavaFloatHolder extends XmlObjectBase {
     }
 
     protected int value_hash_code() {
-        return Float.floatToIntBits(_value);
+        // -0 and 0 are the same value, so they have to hash the same
+        return Float.floatToIntBits(_value == 0.0f ? 0.0f : _value);
     }
 }
