@@ -1051,14 +1051,42 @@ public final class Validator
                 XmlWhitespace.collapse(
                     field.getDefaultText(), type.getWhiteSpaceRule());
 
-            if (!validateSimpleType(type, fixedValue, event)) {
+            // The fixed value was already resolved against the schema at compile
+            // time, so compare against that cooked value. Reparsing its lexical
+            // form here would resolve the schema's prefixes against the instance,
+            // which is also why only the fallback that has to reparse it needs the
+            // lexical check.
+            XmlObject def;
+
+            try {
+                def = field.getDefaultValue();
+            } catch (XmlValueOutOfRangeException e) {
+                def = null;
+            }
+
+            if (def == null && !validateSimpleType(type, fixedValue, event)) {
                 return null;
             }
 
-            XmlObject val = type.newValue(value);
-            XmlObject def = type.newValue(fixedValue);
+            // Comparing the instance value against the fixed value may have to
+            // resolve QName or NOTATION prefixes in the instance value, so push
+            // the namespace context the same way the enumeration comparisons do.
+            boolean valueEquals;
 
-            if (!val.valueEquals(def)) {
+            NamespaceContext.push(new NamespaceContext(event));
+
+            try {
+                XmlObject val = type.newValue(value);
+
+                valueEquals =
+                    val.valueEquals(def == null ? type.newValue(fixedValue) : def);
+            } catch (XmlValueOutOfRangeException e) {
+                valueEquals = false;
+            } finally {
+                NamespaceContext.pop();
+            }
+
+            if (!valueEquals) {
                 // TODO (dutta) - make this more verbose
                 if (field.isAttribute()) {
                     // KHK: check for is cvc-complex-type.3.1 or cvc-au
