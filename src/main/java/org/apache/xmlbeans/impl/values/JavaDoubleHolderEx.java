@@ -63,28 +63,28 @@ public abstract class JavaDoubleHolderEx extends JavaDoubleHolder {
         double d;
 
         if ((x = sType.getFacet(SchemaType.FACET_MIN_EXCLUSIVE)) != null) {
-            if (compare(v, d = ((XmlObjectBase) x).getDoubleValue()) <= 0) {
+            if (compare(v, d = ((XmlObjectBase) x).getDoubleValue()) <= 0 || incomparable(v, d)) {
                 context.invalid(XmlErrorCodes.DATATYPE_MIN_EXCLUSIVE_VALID,
                     new Object[]{"double", v, d, QNameHelper.readable(sType)});
             }
         }
 
         if ((x = sType.getFacet(SchemaType.FACET_MIN_INCLUSIVE)) != null) {
-            if (compare(v, d = ((XmlObjectBase) x).getDoubleValue()) < 0) {
+            if (compare(v, d = ((XmlObjectBase) x).getDoubleValue()) < 0 || incomparable(v, d)) {
                 context.invalid(XmlErrorCodes.DATATYPE_MIN_INCLUSIVE_VALID,
                     new Object[]{"double", v, d, QNameHelper.readable(sType)});
             }
         }
 
         if ((x = sType.getFacet(SchemaType.FACET_MAX_INCLUSIVE)) != null) {
-            if (compare(v, d = ((XmlObjectBase) x).getDoubleValue()) > 0) {
+            if (compare(v, d = ((XmlObjectBase) x).getDoubleValue()) > 0 || incomparable(v, d)) {
                 context.invalid(XmlErrorCodes.DATATYPE_MAX_INCLUSIVE_VALID,
                     new Object[]{"double", v, d, QNameHelper.readable(sType)});
             }
         }
 
         if ((x = sType.getFacet(SchemaType.FACET_MAX_EXCLUSIVE)) != null) {
-            if (compare(v, d = ((XmlObjectBase) x).getDoubleValue()) >= 0) {
+            if (compare(v, d = ((XmlObjectBase) x).getDoubleValue()) >= 0 || incomparable(v, d)) {
                 context.invalid(XmlErrorCodes.DATATYPE_MAX_EXCLUSIVE_VALID,
                     new Object[]{"double", v, d, QNameHelper.readable(sType)});
             }
@@ -100,6 +100,12 @@ public abstract class JavaDoubleHolderEx extends JavaDoubleHolder {
             context.invalid(XmlErrorCodes.DATATYPE_ENUM_VALID,
                 new Object[]{"double", v, QNameHelper.readable(sType)});
         }
+    }
+
+    // NaN is equal to itself but neither less than nor greater than any other
+    // value, so it satisfies none of the bound facets of a non-NaN bound
+    private static boolean incomparable(double v, double bound) {
+        return Double.isNaN(v) != Double.isNaN(bound);
     }
 
     protected void validate_simpleval(String lexical, ValidationContext ctx) {
