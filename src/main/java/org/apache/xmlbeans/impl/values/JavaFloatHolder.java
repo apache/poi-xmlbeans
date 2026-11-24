@@ -130,7 +130,7 @@ public abstract class JavaFloatHolder extends XmlObjectBase {
             return 1;
         }
         if (thisValue == thatValue) {
-            // the value space has a single zero, so -0 and 0 are the same value
+            // one zero in XSD 1.0 2E 3.2.4, and 0 = -0 in 1.1 3.3.4
             return 0;
         }
 
@@ -146,7 +146,7 @@ public abstract class JavaFloatHolder extends XmlObjectBase {
     }
 
     protected int value_hash_code() {
-        // -0 and 0 are the same value, so they have to hash the same
+        // -0 and 0 are equal, so they have to hash the same
         return Float.floatToIntBits(_value == 0.0f ? 0.0f : _value);
     }
 }
