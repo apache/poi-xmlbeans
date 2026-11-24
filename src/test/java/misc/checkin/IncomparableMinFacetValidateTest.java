@@ -43,6 +43,7 @@ public class IncomparableMinFacetValidateTest {
     private static final String DUR_INCOMPARABLE = "P1M";
     // NaN is equal to itself but incomparable with every other float or double
     private static final String NUM_BOUND = "0";
+    private static final String NAN_BOUND = "NaN";
 
     private static final String[] FACETS = {
         "minInclusive", "minExclusive", "maxInclusive", "maxExclusive"
@@ -68,6 +69,8 @@ public class IncomparableMinFacetValidateTest {
             sb.append(element("dur-" + facet, "duration", facet, DUR_BOUND));
             sb.append(element("flt-" + facet, "float", facet, NUM_BOUND));
             sb.append(element("dbl-" + facet, "double", facet, NUM_BOUND));
+            sb.append(element("fltnan-" + facet, "float", facet, NAN_BOUND));
+            sb.append(element("dblnan-" + facet, "double", facet, NAN_BOUND));
         }
         return sb.append("</xs:schema>").toString();
     }
@@ -119,6 +122,28 @@ public class IncomparableMinFacetValidateTest {
         for (String facet : FACETS) {
             assertInvalid("flt-" + facet, "NaN");
             assertInvalid("dbl-" + facet, "NaN");
+        }
+    }
+
+    @Test
+    void nanAgainstNanBoundComparesEqual() throws Exception {
+        // NaN is equal to itself, so the inclusive bounds hold and the exclusive ones do not
+        for (String type : new String[]{"fltnan-", "dblnan-"}) {
+            assertValid(type + "minInclusive", "NaN");
+            assertInvalid(type + "minExclusive", "NaN");
+            assertValid(type + "maxInclusive", "NaN");
+            assertInvalid(type + "maxExclusive", "NaN");
+        }
+    }
+
+    @Test
+    void nanBoundFailsEveryNumber() throws Exception {
+        // a number is incomparable with a NaN bound, so no facet is satisfied
+        for (String facet : FACETS) {
+            for (String value : new String[]{"0", "INF", "-INF"}) {
+                assertInvalid("fltnan-" + facet, value);
+                assertInvalid("dblnan-" + facet, value);
+            }
         }
     }
 
